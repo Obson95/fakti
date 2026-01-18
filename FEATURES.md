@@ -21,14 +21,14 @@ This document lists all implemented features in the Fakti application. Each feat
 
 ## 2. Dashboard
 
-- [ ] 2.1 Statistics cards (total invoices, paid, unpaid, overdue counts)
-- [ ] 2.2 Total revenue display (sum of paid invoices)
-- [ ] 2.3 Total outstanding amount display
-- [ ] 2.4 Payment rate percentage
-- [ ] 2.5 Total clients count
-- [ ] 2.6 Recent invoices list (last 5)
-- [ ] 2.7 Recent clients list (last 5)
-- [ ] 2.8 Quick action buttons (create invoice, add client, view all)
+- [x] 2.1 Statistics cards (total invoices, paid, unpaid, overdue counts)
+- [x] 2.2 Total revenue display (sum of paid invoices)
+- [x] 2.3 Total outstanding amount display
+- [x] 2.4 Payment rate percentage
+- [x] 2.5 Total clients count
+- [x] 2.6 Recent invoices list (last 5)
+- [x] 2.7 Recent clients list (last 5)
+- [x] 2.8 Quick action buttons (create invoice, add client, view all)
 
 ---
 
