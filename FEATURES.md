@@ -6,16 +6,16 @@ This document lists all implemented features in the Fakti application. Each feat
 
 ## 1. User Authentication & Account Management
 
-- [ ] 1.1 User registration with username, email, password, business name
-- [ ] 1.2 User login
-- [ ] 1.3 User logout
-- [ ] 1.4 Password change (authenticated users)
-- [ ] 1.5 Password reset via email
-- [ ] 1.6 Account deletion
-- [ ] 1.7 Profile editing (first name, last name, email)
-- [ ] 1.8 Business profile editing (business name, address, phone, tax ID)
-- [ ] 1.9 Business logo upload
-- [ ] 1.10 Language preference setting (Haitian Creole/English)
+- [x] 1.1 User registration with username, email, password, business name
+- [x] 1.2 User login
+- [x] 1.3 User logout
+- [x] 1.4 Password change (authenticated users)
+- [x] 1.5 Password reset via email
+- [x] 1.6 Account deletion
+- [x] 1.7 Profile editing (first name, last name, email)
+- [x] 1.8 Business profile editing (business name, address, phone, tax ID)
+- [x] 1.9 Business logo upload
+- [x] 1.10 Language preference setting (Haitian Creole/English)
 
 ---
 
