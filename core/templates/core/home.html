@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Fakti - Modern Invoice Generator{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <!-- Language Indicator -->
+        <div class="alert alert-light border d-flex align-items-center mt-3" role="alert">
+            <i class="bi bi-translate me-2 fs-5 text-primary"></i>
+            <div>
+                {% if LANGUAGE_CODE == 'ht' %}
+                <strong>Ou ap itilize Fakti an Kreyòl Ayisyen.</strong> <a href="#" onclick="document.querySelector('button[value=en]').click();" class="alert-link">Switch to English</a>
+                {% else %}
+                <strong>You are using Fakti in English.</strong> <a href="#" onclick="document.querySelector('button[value=ht]').click();" class="alert-link">Chanje pou Kreyòl</a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="row align-items-center py-5">
+            <div class="col-lg-7 text-center text-lg-start">
+                <h1 class="display-4 fw-bold mb-4 fade-in">{% trans "Welcome to Fakti" %}</h1>
+                <p class="lead mb-2 slide-in">{% trans "The modern invoice generator for Haitian businesses" %}</p>
+                <p class="mb-4 slide-in" style="animation-delay: 0.2s;">{% trans "Create professional invoices in Creole or English. Manage clients. Get paid faster." %}</p>
+                <div class="mt-4 scale-in" style="animation-delay: 0.3s;">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg me-2">
+                            <i class="bi bi-speedometer2 me-2"></i> {% trans "Go to Dashboard" %}
+                        </a>
+                    {% else %}
+                        <a href="{% url 'register' %}" class="btn btn-light btn-lg me-2">
+                            <i class="bi bi-rocket-takeoff me-2"></i> {% trans "Get Started Free" %}
+                        </a>
+                        <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">
+                            <i class="bi bi-box-arrow-in-right me-2"></i> {% trans "Login" %}
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-5 d-none d-lg-block">
+                <div class="text-center scale-in" style="animation-delay: 0.4s;">
+                    <img src="{% static 'img/invoice-illustration.svg' %}" alt="Invoice Illustration" class="img-fluid" style="max-height: 400px; filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.2));" onerror="this.style.display='none'">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container py-5">
+    <div class="row text-center mb-5">
+        <div class="col-lg-8 mx-auto">
+            <h2 class="fw-bold text-gradient mb-3">{% trans "Why Choose Fakti?" %}</h2>
+            <p class="text-muted lead">{% trans "Built specifically for Haitian businesses" %}</p>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <!-- Feature 1 -->
+        <div class="col-md-4 stagger-item">
+            <div class="card h-100 border-0 shadow-sm hover-lift">
+                <div class="card-body p-4 text-center">
+                    <div class="mb-4 rounded-circle bg-primary bg-opacity-10 p-3 d-inline-block">
+                        <i class="bi bi-translate text-primary" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">{% trans "Bilingual Support" %}</h5>
+                    <p class="card-text text-muted">{% trans "Create invoices in Haitian Creole or English. Switch languages anytime." %}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Feature 2 -->
+        <div class="col-md-4 stagger-item">
+            <div class="card h-100 border-0 shadow-sm hover-lift">
+                <div class="card-body p-4 text-center">
+                    <div class="mb-4 rounded-circle bg-warning bg-opacity-10 p-3 d-inline-block">
+                        <i class="bi bi-lightning-charge text-warning" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">{% trans "Fast & Easy" %}</h5>
+                    <p class="card-text text-muted">{% trans "Create professional invoices in minutes. No design skills needed." %}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Feature 3 -->
+        <div class="col-md-4 stagger-item">
+            <div class="card h-100 border-0 shadow-sm hover-lift">
+                <div class="card-body p-4 text-center">
+                    <div class="mb-4 rounded-circle bg-success bg-opacity-10 p-3 d-inline-block">
+                        <i class="bi bi-shield-check text-success" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">{% trans "Secure & Reliable" %}</h5>
+                    <p class="card-text text-muted">{% trans "Your data is safe. Cloud-based with automatic backups." %}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Feature 4 -->
+        <div class="col-md-4 stagger-item">
+            <div class="card h-100 border-0 shadow-sm hover-lift">
+                <div class="card-body p-4 text-center">
+                    <div class="mb-4 rounded-circle bg-danger bg-opacity-10 p-3 d-inline-block">
+                        <i class="bi bi-file-earmark-pdf text-danger" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">{% trans "PDF Download" %}</h5>
+                    <p class="card-text text-muted">{% trans "Download invoices as PDF. Share via email or print." %}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Feature 5 -->
+        <div class="col-md-4 stagger-item">
+            <div class="card h-100 border-0 shadow-sm hover-lift">
+                <div class="card-body p-4 text-center">
+                    <div class="mb-4 rounded-circle bg-info bg-opacity-10 p-3 d-inline-block">
+                        <i class="bi bi-people text-info" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">{% trans "Client Management" %}</h5>
+                    <p class="card-text text-muted">{% trans "Save client info. Track payment history. Stay organized." %}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Feature 6 -->
+        <div class="col-md-4 stagger-item">
+            <div class="card h-100 border-0 shadow-sm hover-lift">
+                <div class="card-body p-4 text-center">
+                    <div class="mb-4 rounded-circle bg-primary bg-opacity-10 p-3 d-inline-block">
+                        <i class="bi bi-phone text-primary" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">{% trans "Mobile Friendly" %}</h5>
+                    <p class="card-text text-muted">{% trans "Works on any device. Manage invoices on the go." %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="container my-5">
+    <div class="card border-0 shadow-lg bg-primary text-white py-5">
+        <div class="card-body text-center">
+            <div class="row justify-content-center">
+                <div class="col-lg-7">
+                    <h2 class="fw-bold mb-3">{% trans "Ready to get started?" %}</h2>
+                    <p class="mb-4 opacity-75">{% trans "Join hundreds of Haitian businesses using Fakti" %}</p>
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'register' %}" class="btn btn-light btn-lg">
+                            <i class="bi bi-rocket-takeoff me-2"></i> {% trans "Create Free Account" %}
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<div class="container py-5">
+    <div class="row text-center mb-5">
+        <div class="col-lg-8 mx-auto">
+            <h2 class="fw-bold mb-3">{% trans "How It Works" %}</h2>
+            <p class="text-muted lead">{% trans "Get started in three simple steps" %}</p>
+        </div>
+    </div>
+    
+    <div class="row g-4 align-items-center">
+        <div class="col-lg-4 text-center stagger-item">
+            <div class="step-circle mx-auto mb-4 d-flex align-items-center justify-content-center">
+                <span class="fw-bold">1</span>
+            </div>
+            <h4 class="fw-bold">{% trans "Create Account" %}</h4>
+            <p class="text-muted">{% trans "Sign up for free in less than a minute" %}</p>
+        </div>
+        
+        <div class="col-lg-4 text-center stagger-item">
+            <div class="step-circle mx-auto mb-4 d-flex align-items-center justify-content-center">
+                <span class="fw-bold">2</span>
+            </div>
+            <h4 class="fw-bold">{% trans "Add Clients" %}</h4>
+            <p class="text-muted">{% trans "Enter client information once and reuse it" %}</p>
+        </div>
+        
+        <div class="col-lg-4 text-center stagger-item">
+            <div class="step-circle mx-auto mb-4 d-flex align-items-center justify-content-center">
+                <span class="fw-bold">3</span>
+            </div>
+            <h4 class="fw-bold">{% trans "Generate Invoices" %}</h4>
+            <p class="text-muted">{% trans "Create professional PDF invoices in seconds" %}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

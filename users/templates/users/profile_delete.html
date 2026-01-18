@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete Account" %} - Fakti{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar Navigation -->
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-gear-fill"></i> {% trans "Account Settings" %}</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'profile' %}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-person"></i> {% trans "Profile" %}
+                    </a>
+                    <a href="{% url 'password_change' %}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-shield-lock"></i> {% trans "Change Password" %}
+                    </a>
+                    <a href="{% url 'profile_delete' %}" class="list-group-item list-group-item-action active text-white">
+                        <i class="bi bi-trash"></i> {% trans "Delete Account" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Delete Account Confirmation -->
+        <div class="col-md-9">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="bi bi-exclamation-triangle"></i> {% trans "Delete Your Account" %}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h5><i class="bi bi-exclamation-circle"></i> {% trans "Warning!" %}</h5>
+                        <p>{% trans "Deleting your account is permanent and cannot be undone. All your data, including:" %}</p>
+                        <ul>
+                            <li>{% trans "Your profile information" %}</li>
+                            <li>{% trans "All invoices you've created" %}</li>
+                            <li>{% trans "Client information" %}</li>
+                        </ul>
+                        <p>{% trans "will be permanently deleted." %}</p>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="confirm-delete" required>
+                                <label class="form-check-label" for="confirm-delete">
+                                    {% trans "I understand that this action is permanent and cannot be undone." %}
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex">
+                            <a href="{% url 'profile' %}" class="btn btn-secondary me-2">
+                                <i class="bi bi-arrow-left"></i> {% trans "Cancel" %}
+                            </a>
+                            <button type="submit" class="btn btn-danger" id="delete-button" disabled>
+                                <i class="bi bi-trash"></i> {% trans "Delete My Account" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmCheck = document.getElementById('confirm-delete');
+    const deleteButton = document.getElementById('delete-button');
+    
+    confirmCheck.addEventListener('change', function() {
+        deleteButton.disabled = !this.checked;
+    });
+});
+</script>
+{% endblock %}
+
+{% endblock %}

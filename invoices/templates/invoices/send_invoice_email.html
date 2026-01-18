@@ -1,0 +1,44 @@
+{% load i18n %}
+<div class="modal-header">
+  <h5 class="modal-title">{% trans "Send Invoice via Email" %}</h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<form method="post" action="{% url 'invoice_send' invoice.pk %}">
+  {% csrf_token %}
+  <div class="modal-body">
+    <div class="mb-3">
+      <label class="form-label">{% trans "To" %}</label>
+      {{ form.to_email|as_widget(attrs={'class':'form-control'}) }}
+    </div>
+    <div class="mb-3">
+      <label class="form-label">{% trans "CC" %}</label>
+      {{ form.cc|as_widget(attrs={'class':'form-control'}) }}
+      <div class="form-text">{% trans "Comma or semicolon separated emails" %}</div>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">{% trans "BCC" %}</label>
+      {{ form.bcc|as_widget(attrs={'class':'form-control'}) }}
+      <div class="form-text">{% trans "Comma or semicolon separated emails" %}</div>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">{% trans "Subject" %}</label>
+      {{ form.subject|as_widget(attrs={'class':'form-control'}) }}
+    </div>
+    <div class="mb-3">
+      <label class="form-label">{% trans "Message" %}</label>
+      {{ form.message|as_widget(attrs={'class':'form-control', 'rows':'6'}) }}
+    </div>
+    <div class="form-check mb-3">
+      {{ form.attach_pdf|as_widget(attrs={'class':'form-check-input', 'id':'attach_pdf'}) }}
+      <label class="form-check-label" for="attach_pdf">{% trans "Attach PDF" %}</label>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">{% trans "Reply-To" %}</label>
+      {{ form.reply_to|as_widget(attrs={'class':'form-control'}) }}
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+    <button type="submit" class="btn btn-primary">{% trans "Send" %}</button>
+  </div>
+</form>

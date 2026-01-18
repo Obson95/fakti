@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete Client" %} - {{ client.name }} - Fakti{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'client_list' %}">{% trans "Clients" %}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'client_detail' client.pk %}">{{ client.name }}</a></li>
+            <li class="breadcrumb-item active">{% trans "Delete" %}</li>
+        </ol>
+    </nav>
+
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h3 class="card-title mb-0">{% trans "Delete Client" %}</h3>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                {% trans "Are you sure you want to delete this client?" %}
+            </div>
+
+            <div class="mb-4">
+                <h5>{{ client.name }}</h5>
+                <p>{{ client.full_address }}</p>
+                
+                {% if client.invoices.count > 0 %}
+                <div class="alert alert-danger">
+                    <strong>{% trans "Warning" %}:</strong> 
+                    {% blocktrans with count=client.invoices.count %}
+                    This client has {{ count }} invoice(s). Deleting this client will delete all associated invoices.
+                    {% endblocktrans %}
+                </div>
+                {% endif %}
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'client_detail' client.pk %}" class="btn btn-outline-secondary">
+                        {% trans "Cancel" %}
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i>
+                        {% trans "Delete Client" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

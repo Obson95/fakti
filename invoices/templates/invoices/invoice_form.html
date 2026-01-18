@@ -1,0 +1,671 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}
+    {% if invoice.pk %}
+        {% trans "Edit Invoice" %} #{{ invoice.invoice_number }}
+    {% else %}
+        {% trans "Create Invoice" %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'invoice_list' %}">{% trans "Invoices" %}</a></li>
+                    <li class="breadcrumb-item active">
+                        {% if invoice.pk %}
+                            {% trans "Edit Invoice" %} #{{ invoice.invoice_number }}
+                        {% else %}
+                            {% trans "Create Invoice" %}
+                        {% endif %}
+                    </li>
+                </ol>
+            </nav>
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1 class="fw-bold">
+                        {% if invoice.pk %}
+                            <i class="bi bi-pencil-square text-primary me-2"></i>{% trans "Edit Invoice" %} #{{ invoice.invoice_number }}
+                        {% else %}
+                            <i class="bi bi-file-earmark-plus text-primary me-2"></i>{% trans "Create New Invoice" %}
+                        {% endif %}
+                    </h1>
+                    <p class="text-muted">
+                        {% if invoice.pk %}
+                            {% trans "Update invoice details and line items" %}
+                        {% else %}
+                            {% trans "Create a professional invoice for your client" %}
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'invoice_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>{% trans "Back to List" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice Form -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="card-title fw-bold mb-0">
+                        <i class="bi bi-info-circle text-primary me-2"></i>{% trans "Invoice Details" %}
+                    </h5>
+                </div>
+                
+                <div class="card-body">
+                    <form method="post" id="invoice-form">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ form.non_field_errors }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Client & Invoice Number -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.client.id_for_label }}" class="form-label">
+                                    <i class="bi bi-person-circle text-primary me-1"></i>{% trans "Client" %} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.client }}
+                                {% if form.client.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.client.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="{{ form.invoice_number.id_for_label }}" class="form-label">
+                                    <i class="bi bi-hash text-primary me-1"></i>{% trans "Invoice Number" %}
+                                </label>
+                                {{ form.invoice_number }}
+                                {% if form.invoice_number.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.invoice_number.errors }}
+                                </div>
+                                {% endif %}
+                                <small class="form-text text-muted">{% trans "Leave blank to auto-generate" %}</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Dates & Currency -->
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="{{ form.issue_date.id_for_label }}" class="form-label">
+                                    <i class="bi bi-calendar-event text-primary me-1"></i>{% trans "Issue Date" %} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.issue_date }}
+                                {% if form.issue_date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.issue_date.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label for="{{ form.due_date.id_for_label }}" class="form-label">
+                                    <i class="bi bi-calendar-check text-primary me-1"></i>{% trans "Due Date" %} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.due_date }}
+                                {% if form.due_date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.due_date.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label for="{{ form.currency.id_for_label }}" class="form-label">
+                                    <i class="bi bi-currency-dollar text-primary me-1"></i>{% trans "Currency" %} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.currency }}
+                                {% if form.currency.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.currency.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Status & Tax Rate -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.status.id_for_label }}" class="form-label">
+                                    <i class="bi bi-flag-fill text-primary me-1"></i>{% trans "Status" %}
+                                </label>
+                                {{ form.status }}
+                                {% if form.status.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.status.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="{{ form.tax_rate.id_for_label }}" class="form-label">
+                                    <i class="bi bi-percent text-primary me-1"></i>{% trans "Tax Rate" %} (%)
+                                </label>
+                                {{ form.tax_rate }}
+                                {% if form.tax_rate.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.tax_rate.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Notes -->
+                        <div class="mb-3">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label">
+                                <i class="bi bi-chat-left-text text-primary me-1"></i>{% trans "Notes" %}
+                                </label>
+                                {{ form.notes }}
+                                {% if form.notes.errors %}
+                                <div class="invalid-feedback d-block">
+                                {{ form.notes.errors }}
+                            </div>
+                            {% endif %}
+                            <small class="form-text text-muted">{% trans "Additional information or payment terms" %}</small>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <!-- Invoice Items Section -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title fw-bold mb-0">
+                                <i class="bi bi-list-ul text-primary me-2"></i>{% trans "Invoice Items" %}
+                            </h5>
+                            <button type="button" id="add-line-item" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-plus-circle me-2"></i>{% trans "Add Item" %}
+                            </button>
+                        </div>
+
+                        <!-- Management Form -->
+                        {{ formset.management_form }}
+                        
+                        {% if formset.non_form_errors %}
+                        <div class="alert alert-danger">
+                            {{ formset.non_form_errors }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="table-responsive invoice-items-responsive">
+                            <table class="table table-hover align-middle mb-0 modern-table" id="line-items-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="fw-semibold text-muted text-uppercase small px-4" style="width: 20%">{% trans "Item" %}</th>
+                                        <th class="fw-semibold text-muted text-uppercase small" style="width: 35%">{% trans "Description" %} <span class="text-danger">*</span></th>
+                                        <th class="fw-semibold text-muted text-uppercase small" style="width: 12%">{% trans "Quantity" %} <span class="text-danger">*</span></th>
+                                        <th class="fw-semibold text-muted text-uppercase small" style="width: 15%">{% trans "Unit Price" %} <span class="text-danger">*</span></th>
+                                        <th class="fw-semibold text-muted text-uppercase small" style="width: 13%">{% trans "Total" %}</th>
+                                        <th class="fw-semibold text-muted text-uppercase small text-center px-4" style="width: 5%">{% trans "Actions" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="formset-body">
+                                    {% for form in formset.forms %}
+                                    <tr class="formset-row" data-form-index="{{ forloop.counter0 }}">
+                                        <td>
+                                            {% for hidden in form.hidden_fields %}
+                                            {{ hidden }}
+                                            {% endfor %}
+                                            {{ form.item }}
+                                        </td>
+                                        <td>
+                                            {{ form.description }}
+                                            {% if form.description.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.description.errors }}
+                                            </div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {{ form.quantity }}
+                                            {% if form.quantity.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.quantity.errors }}
+                                            </div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {{ form.unit_price }}
+                                            {% if form.unit_price.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.unit_price.errors }}
+                                            </div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="line-total fw-bold">0.00</div>
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-sm btn-outline-danger remove-row-btn">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                            {{ form.DELETE }}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Totals Section -->
+                        <div class="row justify-content-end mt-4">
+                            <div class="col-md-5 col-lg-4">
+                                <div class="card border-0 shadow-sm bg-light mb-0">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="text-muted small fw-semibold text-uppercase">{% trans "Subtotal" %}</span>
+                                            <span class="subtotal-amount fw-semibold text-dark">$0.00</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="text-muted small fw-semibold text-uppercase">{% trans "Tax" %}</span>
+                                            <span class="tax-amount fw-semibold text-dark">$0.00</span>
+                                        </div>
+                                        <hr class="my-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-dark small fw-bold text-uppercase">{% trans "Total" %}</span>
+                                            <span class="total-amount h5 fw-bold text-primary mb-0">$0.00</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+        
+    <!-- Form Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'invoice_list' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-x-circle me-2"></i>{% trans "Cancel" %}
+                        </a>
+                        <button type="submit" form="invoice-form" class="btn btn-primary btn-lg px-4">
+                            <i class="bi bi-save me-2"></i>
+                            {% if invoice.pk %}
+                                {% trans "Update Invoice" %}
+                            {% else %}
+                                {% trans "Create Invoice" %}
+                            {% endif %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+    /* Enhanced Invoice Form Styles */
+    .invoice-items-responsive {
+        overflow: visible;
+    }
+    
+    #line-items-table {
+        margin-bottom: 0;
+    }
+    
+    #line-items-table thead th {
+        background-color: var(--gray-50);
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--gray-700);
+        padding: 0.875rem 0.75rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    #line-items-table tbody td {
+        padding: 0.75rem;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .formset-row {
+        transition: all 0.3s ease;
+    }
+    
+    .formset-row:hover {
+        background-color: var(--gray-50);
+    }
+    
+    .line-total {
+        font-size: 1rem;
+        color: var(--primary-color);
+        padding: 0.5rem;
+        background: rgba(13, 110, 253, 0.05);
+        border-radius: 6px;
+        text-align: right;
+        font-weight: 600;
+    }
+    
+    .remove-row-btn {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .remove-row-btn:hover {
+        transform: scale(1.1);
+    }
+    
+    .totals-section {
+        background: var(--gray-50);
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        margin-top: 1rem;
+    }
+    
+    .subtotal-amount,
+    .tax-amount {
+        font-size: 1.125rem;
+        color: var(--gray-700);
+        font-weight: 600;
+    }
+    
+    .total-amount {
+        font-size: 1.5rem !important;
+        font-weight: 700 !important;
+        color: var(--primary-color) !important;
+    }
+    
+    /* Animation for new rows */
+    @keyframes rowHighlight {
+        0% {
+            background-color: #d4edda;
+        }
+        100% {
+            background-color: transparent;
+        }
+    }
+    
+    .row-added {
+        animation: rowHighlight 1.5s ease;
+    }
+    
+    /* Form spacing improvements */
+    .card + .card {
+        margin-top: 0;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    'use strict';
+    
+    const FORMSET_PREFIX = 'line_items';
+    const tbody = document.getElementById('formset-body');
+    const addButton = document.getElementById('add-line-item');
+    
+    if (!tbody || !addButton) {
+        return;
+    }
+    
+    // Function to get current form count
+    function getFormCount() {
+        const field = document.querySelector(`input[name="${FORMSET_PREFIX}-TOTAL_FORMS"]`);
+        return field ? parseInt(field.value) : 0;
+    }
+    
+    // Function to set form count
+    function setFormCount(count) {
+        const field = document.querySelector(`input[name="${FORMSET_PREFIX}-TOTAL_FORMS"]`);
+        if (field) {
+            field.value = count;
+        }
+    }
+    
+    // Function to create a new row
+    function addNewRow() {
+        const rows = tbody.querySelectorAll('.formset-row');
+        if (rows.length === 0) {
+            return;
+        }
+        
+        const templateRow = rows[0];
+        const newIndex = getFormCount();
+        
+        // Clone the template row
+        const newRow = templateRow.cloneNode(true);
+        newRow.setAttribute('data-form-index', newIndex);
+        
+        // Update all form field names and IDs
+        const fields = newRow.querySelectorAll('input, select, textarea');
+        fields.forEach(field => {
+            // Update name attribute
+            if (field.name) {
+                field.name = field.name.replace(
+                    new RegExp(`${FORMSET_PREFIX}-\\d+-`),
+                    `${FORMSET_PREFIX}-${newIndex}-`
+                );
+            }
+            
+            // Update id attribute
+            if (field.id) {
+                field.id = field.id.replace(
+                    new RegExp(`id_${FORMSET_PREFIX}-\\d+-`),
+                    `id_${FORMSET_PREFIX}-${newIndex}-`
+                );
+            }
+            
+            // Clear values
+            if (field.type === 'hidden' && field.name.endsWith('-id')) {
+                field.value = '';
+            } else if (field.type === 'checkbox' && field.name.endsWith('-DELETE')) {
+                field.checked = false;
+                field.style.display = 'none';
+            } else if (field.type !== 'hidden') {
+                if (field.tagName === 'SELECT') {
+                    field.selectedIndex = 0;
+                } else if (field.name && field.name.includes('quantity')) {
+                    field.value = '1';
+                } else {
+                    field.value = '';
+                }
+            }
+        });
+        
+        // Clear the line total
+        const lineTotal = newRow.querySelector('.line-total');
+        if (lineTotal) {
+            lineTotal.textContent = '0.00';
+        }
+        
+        // Add the row to tbody
+        tbody.appendChild(newRow);
+        
+        // Add highlight animation class
+        newRow.classList.add('row-added');
+        
+        // Update form count
+        setFormCount(newIndex + 1);
+        
+        // Attach event listeners to the new row
+        attachRowEventListeners(newRow);
+        
+        // Recalculate totals
+        calculateTotals();
+        
+        // Show success feedback
+        showSuccessFeedback();
+        
+        // Focus on first input
+        const firstInput = newRow.querySelector('select, input[type="text"], textarea');
+        if (firstInput) {
+            setTimeout(() => firstInput.focus(), 100);
+        }
+    }
+    
+    // Function to attach event listeners to a row
+    function attachRowEventListeners(row) {
+        // Remove button
+        const removeBtn = row.querySelector('.remove-row-btn');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', function() {
+                const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
+                if (deleteCheckbox) {
+                    deleteCheckbox.checked = true;
+                    row.style.display = 'none';
+                    calculateTotals();
+                }
+            });
+        }
+        
+        // Quantity and price inputs
+        const quantityInput = row.querySelector('input[name$="-quantity"]');
+        const priceInput = row.querySelector('input[name$="-unit_price"]');
+        
+        if (quantityInput) {
+            quantityInput.addEventListener('input', () => calculateLineTotal(row));
+        }
+        if (priceInput) {
+            priceInput.addEventListener('input', () => calculateLineTotal(row));
+        }
+    }
+    
+    // Function to calculate line total
+    function calculateLineTotal(row) {
+        const quantityInput = row.querySelector('input[name$="-quantity"]');
+        const priceInput = row.querySelector('input[name$="-unit_price"]');
+        const totalDiv = row.querySelector('.line-total');
+        
+        if (quantityInput && priceInput && totalDiv) {
+            const quantity = parseFloat(quantityInput.value) || 0;
+            const price = parseFloat(priceInput.value) || 0;
+            const total = quantity * price;
+            totalDiv.textContent = total.toFixed(2);
+        }
+        
+        calculateTotals();
+    }
+    
+    // Function to calculate all totals
+    function calculateTotals() {
+        let subtotal = 0;
+        const rows = tbody.querySelectorAll('.formset-row');
+        
+        rows.forEach(row => {
+            const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
+            if (!deleteCheckbox || !deleteCheckbox.checked) {
+                if (row.style.display !== 'none') {
+                    const quantityInput = row.querySelector('input[name$="-quantity"]');
+                    const priceInput = row.querySelector('input[name$="-unit_price"]');
+                    
+                    if (quantityInput && priceInput) {
+                        const quantity = parseFloat(quantityInput.value) || 0;
+                        const price = parseFloat(priceInput.value) || 0;
+                        subtotal += quantity * price;
+                    }
+                }
+            }
+        });
+        
+        // Update subtotal
+        const subtotalEl = document.querySelector('.subtotal-amount');
+        if (subtotalEl) {
+            subtotalEl.textContent = '$' + subtotal.toFixed(2);
+        }
+        
+        // Calculate tax
+        const taxRateInput = document.getElementById('id_tax_rate');
+        let tax = 0;
+        if (taxRateInput) {
+            const taxRate = parseFloat(taxRateInput.value) || 0;
+            tax = subtotal * (taxRate / 100);
+        }
+        
+        const taxEl = document.querySelector('.tax-amount');
+        if (taxEl) {
+            taxEl.textContent = '$' + tax.toFixed(2);
+        }
+        
+        // Calculate total
+        const total = subtotal + tax;
+        const totalEl = document.querySelector('.total-amount');
+        if (totalEl) {
+            totalEl.textContent = '$' + total.toFixed(2);
+        }
+    }
+    
+    // Function to show success feedback
+    function showSuccessFeedback() {
+        const originalHTML = addButton.innerHTML;
+        addButton.innerHTML = '<i class="bi bi-check-circle me-2"></i>Item Added!';
+        addButton.classList.remove('btn-outline-primary');
+        addButton.classList.add('btn-success');
+        
+        setTimeout(() => {
+            addButton.innerHTML = originalHTML;
+            addButton.classList.remove('btn-success');
+            addButton.classList.add('btn-outline-primary');
+        }, 1500);
+    }
+    
+    // Add button click event
+    addButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        addNewRow();
+    });
+    
+    // Initialize event listeners on existing rows
+    const existingRows = tbody.querySelectorAll('.formset-row');
+    existingRows.forEach(row => {
+        attachRowEventListeners(row);
+        
+        // Hide DELETE checkboxes
+        const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
+        if (deleteCheckbox) {
+            deleteCheckbox.style.display = 'none';
+        }
+    });
+    
+    // Initial calculation
+    calculateTotals();
+    
+    // Tax rate change listener
+    const taxRateInput = document.getElementById('id_tax_rate');
+    if (taxRateInput) {
+        taxRateInput.addEventListener('input', calculateTotals);
+    }
+    
+    // Date pickers - set today as default
+    const issueDateInput = document.getElementById('id_issue_date');
+    const dueDateInput = document.getElementById('id_due_date');
+    
+    if (issueDateInput && !issueDateInput.value) {
+        const today = new Date().toISOString().split('T')[0];
+        issueDateInput.value = today;
+    }
+    
+    if (dueDateInput && !dueDateInput.value) {
+        const nextMonth = new Date();
+        nextMonth.setMonth(nextMonth.getMonth() + 1);
+        dueDateInput.value = nextMonth.toISOString().split('T')[0];
+    }
+});
+</script>
+{% endblock %}

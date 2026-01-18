@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ client.name }} - {% trans "Client Details" %} - Fakti{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'client_list' %}">{% trans "Clients" %}</a></li>
+            <li class="breadcrumb-item active">{{ client.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">{{ client.name }}</h1>
+        <div>
+            <a href="{% url 'invoice_create' %}?client={{ client.pk }}" class="btn btn-primary">
+                <i class="bi bi-file-earmark-plus"></i> {% trans "New Invoice" %}
+            </a>
+            <a href="{% url 'client_update' client.pk %}" class="btn btn-outline-secondary">
+                <i class="bi bi-pencil"></i> {% trans "Edit Client" %}
+            </a>
+            <a href="{% url 'client_delete' client.pk %}" class="btn btn-outline-danger">
+                <i class="bi bi-trash"></i> {% trans "Delete" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{% trans "Client Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="text-muted small">{% trans "Email" %}</label>
+                        <div>
+                            {% if client.email %}
+                            <a href="mailto:{{ client.email }}">{{ client.email }}</a>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="text-muted small">{% trans "Phone" %}</label>
+                        <div>
+                            {% if client.phone %}
+                            <a href="tel:{{ client.phone }}">{{ client.phone }}</a>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="text-muted small">{% trans "Address" %}</label>
+                        <div>{{ client.full_address|default:"-" }}</div>
+                    </div>
+                    
+                    {% if client.notes %}
+                    <div class="mb-3">
+                        <label class="text-muted small">{% trans "Notes" %}</label>
+                        <div>{{ client.notes }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{% trans "Summary" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>{% trans "Total Invoices" %}</span>
+                        <span class="fw-bold">{{ invoices.count }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>{% trans "Total Billed" %}</span>
+                        <span class="fw-bold">{{ client.total_billed|floatformat:2 }} HTG</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">{% trans "Invoices" %}</h5>
+                    <a href="{% url 'invoice_create' %}?client={{ client.pk }}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-lg"></i> {% trans "Create Invoice" %}
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Invoice #" %}</th>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Due Date" %}</th>
+                                    <th>{% trans "Total" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for invoice in invoices %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'invoice_detail' invoice.pk %}" class="text-decoration-none">
+                                            {{ invoice.invoice_number }}
+                                        </a>
+                                    </td>
+                                    <td>{{ invoice.issue_date }}</td>
+                                    <td>{{ invoice.due_date }}</td>
+                                    <td>{{ invoice.total|floatformat:2 }} HTG</td>
+                                    <td>
+                                        {% if invoice.status == 'draft' %}
+                                        <span class="badge bg-secondary">{% trans "Draft" %}</span>
+                                        {% elif invoice.status == 'sent' %}
+                                        <span class="badge bg-info">{% trans "Sent" %}</span>
+                                        {% elif invoice.status == 'paid' %}
+                                        <span class="badge bg-success">{% trans "Paid" %}</span>
+                                        {% elif invoice.status == 'overdue' %}
+                                        <span class="badge bg-danger">{% trans "Overdue" %}</span>
+                                        {% elif invoice.status == 'canceled' %}
+                                        <span class="badge bg-dark">{% trans "Canceled" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'invoice_detail' invoice.pk %}" class="btn btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{% url 'invoice_update' invoice.pk %}" class="btn btn-outline-secondary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="{% url 'invoice_pdf' invoice.pk %}" class="btn btn-outline-dark">
+                                                <i class="bi bi-file-pdf"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <p class="text-muted mb-2">{% trans "No invoices for this client yet" %}</p>
+                                        <a href="{% url 'invoice_create' %}?client={{ client.pk }}" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-file-earmark-plus"></i> {% trans "Create Invoice" %}
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

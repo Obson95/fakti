@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Clients" %} - Fakti{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a></li>
+                    <li class="breadcrumb-item active">{% trans "Clients" %}</li>
+                </ol>
+            </nav>
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1 class="fw-bold">
+                        <i class="bi bi-people text-primary me-2"></i>{% trans "Clients" %}
+                    </h1>
+                    <p class="text-muted">{% trans "Manage your client database and relationships" %}</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'client_create' %}" class="btn btn-primary">
+                        <i class="bi bi-person-plus me-2"></i>{% trans "New Client" %}
+                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-download me-2"></i>{% trans "Export Clients" %}</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-upload me-2"></i>{% trans "Import Clients" %}</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desktop Table View (hidden on mobile) -->
+    <div class="card border-0 shadow-sm d-none d-lg-block">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 modern-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="fw-semibold">{% trans "Name" %}</th>
+                            <th class="fw-semibold">{% trans "Email" %}</th>
+                            <th class="fw-semibold">{% trans "Phone" %}</th>
+                            <th class="fw-semibold">{% trans "Location" %}</th>
+                            <th class="fw-semibold">{% trans "Invoices" %}</th>
+                            <th class="fw-semibold text-end">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for client in clients %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'client_detail' client.pk %}" class="text-decoration-none fw-medium text-primary">
+                                    <i class="bi bi-person-circle me-1"></i>{{ client.name }}
+                                </a>
+                            </td>
+                            <td><small class="text-muted">{{ client.email|default:"-" }}</small></td>
+                            <td><small class="text-muted">{{ client.phone|default:"-" }}</small></td>
+                            <td><small class="text-muted">{{ client.city|default:"-" }}, {{ client.country }}</small></td>
+                            <td>
+                                <a href="{% url 'client_detail' client.pk %}" class="badge bg-primary text-decoration-none">
+                                    {{ client.invoices.count }} {% trans "invoice" %}{{ client.invoices.count|pluralize }}
+                                </a>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm float-end">
+                                    <a href="{% url 'client_detail' client.pk %}" class="btn btn-outline-primary" title="{% trans 'View' %}">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'client_update' client.pk %}" class="btn btn-outline-secondary" title="{% trans 'Edit' %}">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'invoice_create' %}?client={{ client.pk }}" class="btn btn-outline-success" title="{% trans 'New Invoice' %}">
+                                        <i class="bi bi-file-earmark-plus"></i>
+                                    </a>
+                                    <a href="{% url 'client_delete' client.pk %}" class="btn btn-outline-danger" title="{% trans 'Delete' %}">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="empty-state-icon mb-3">
+                                    <i class="bi bi-people"></i>
+                                </div>
+                                <h5 class="fw-semibold">{% trans "No clients yet" %}</h5>
+                                <p class="text-muted mb-3">{% trans "Add your first client to start creating invoices" %}</p>
+                                <a href="{% url 'client_create' %}" class="btn btn-primary">
+                                    <i class="bi bi-person-plus me-2"></i> {% trans "Add Client" %}
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Card View (visible on mobile only) -->
+    <div class="d-lg-none">
+        {% for client in clients %}
+        <div class="card border-0 shadow-sm mb-3 hover-lift">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <h6 class="fw-bold mb-1">
+                            <a href="{% url 'client_detail' client.pk %}" class="text-decoration-none text-dark">
+                                <i class="bi bi-person-circle me-1"></i>{{ client.name }}
+                            </a>
+                        </h6>
+                        <p class="text-muted mb-0 small">
+                            <i class="bi bi-geo-alt me-1"></i>{{ client.city|default:"-" }}, {{ client.country }}
+                        </p>
+                    </div>
+                    <span class="badge bg-primary">
+                        {{ client.invoices.count }} {% trans "invoice" %}{{ client.invoices.count|pluralize }}
+                    </span>
+                </div>
+                
+                <div class="mb-2">
+                    {% if client.email %}
+                    <small class="text-muted d-block">
+                        <i class="bi bi-envelope me-1"></i>{{ client.email }}
+                    </small>
+                    {% endif %}
+                    {% if client.phone %}
+                    <small class="text-muted d-block">
+                        <i class="bi bi-telephone me-1"></i>{{ client.phone }}
+                    </small>
+                    {% endif %}
+                </div>
+                
+                <div class="d-flex gap-2 pt-2 border-top">
+                    <a href="{% url 'client_detail' client.pk %}" class="btn btn-sm btn-outline-primary flex-fill">
+                        <i class="bi bi-eye me-1"></i>{% trans "View" %}
+                    </a>
+                    <a href="{% url 'client_update' client.pk %}" class="btn btn-sm btn-outline-secondary flex-fill">
+                        <i class="bi bi-pencil me-1"></i>{% trans "Edit" %}
+                    </a>
+                    <a href="{% url 'invoice_create' %}?client={{ client.pk }}" class="btn btn-sm btn-outline-success flex-fill">
+                        <i class="bi bi-plus"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <div class="empty-state-icon mb-3">
+                    <i class="bi bi-people"></i>
+                </div>
+                <h5 class="fw-semibold">{% trans "No clients yet" %}</h5>
+                <p class="text-muted mb-3">{% trans "Add your first client to start creating invoices" %}</p>
+                <a href="{% url 'client_create' %}" class="btn btn-primary">
+                    <i class="bi bi-person-plus me-2"></i> {% trans "Add Client" %}
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

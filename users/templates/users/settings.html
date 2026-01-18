@@ -1,0 +1,357 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Settings" %} - Fakti{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a></li>
+                    <li class="breadcrumb-item active">{% trans "Settings" %}</li>
+                </ol>
+            </nav>
+            <h1 class="fw-bold">{% trans "Settings" %}</h1>
+            <p class="text-muted">{% trans "Manage your account and business preferences" %}</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Settings Navigation -->
+        <div class="col-lg-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="#profile" class="list-group-item list-group-item-action active" data-bs-toggle="pill">
+                            <i class="bi bi-person-circle me-2"></i> {% trans "Profile" %}
+                        </a>
+                        <a href="#business" class="list-group-item list-group-item-action" data-bs-toggle="pill">
+                            <i class="bi bi-building me-2"></i> {% trans "Business Info" %}
+                        </a>
+                        <a href="#preferences" class="list-group-item list-group-item-action" data-bs-toggle="pill">
+                            <i class="bi bi-gear me-2"></i> {% trans "Preferences" %}
+                        </a>
+                        <a href="#security" class="list-group-item list-group-item-action" data-bs-toggle="pill">
+                            <i class="bi bi-shield-lock me-2"></i> {% trans "Security" %}
+                        </a>
+                        <a href="#notifications" class="list-group-item list-group-item-action" data-bs-toggle="pill">
+                            <i class="bi bi-bell me-2"></i> {% trans "Notifications" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Content -->
+        <div class="col-lg-9">
+            <div class="tab-content">
+                <!-- Profile Tab -->
+                <div class="tab-pane fade show active" id="profile">
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-person-circle text-primary me-2"></i> {% trans "Profile Information" %}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label }}</label>
+                                            {{ form.first_name }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label }}</label>
+                                            {{ form.last_name }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                                    {{ form.email }}
+                                </div>
+                                <div class="mb-3">
+                                    <label for="{{ form.language.id_for_label }}" class="form-label">{{ form.language.label }}</label>
+                                    {{ form.language }}
+                                    <div class="form-text">{% trans "Choose your preferred language for the interface" %}</div>
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-circle me-2"></i> {% trans "Save Changes" %}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Business Tab -->
+                <div class="tab-pane fade" id="business">
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-building text-primary me-2"></i> {% trans "Business Information" %}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="{{ form.business_name.id_for_label }}" class="form-label">{{ form.business_name.label }}</label>
+                                    {{ form.business_name }}
+                                </div>
+                                <div class="mb-3">
+                                    <label for="{{ form.business_address.id_for_label }}" class="form-label">{{ form.business_address.label }}</label>
+                                    {{ form.business_address }}
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.business_phone.id_for_label }}" class="form-label">{{ form.business_phone.label }}</label>
+                                            {{ form.business_phone }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.tax_id.id_for_label }}" class="form-label">{{ form.tax_id.label }}</label>
+                                            {{ form.tax_id }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="{{ form.logo.id_for_label }}" class="form-label">{{ form.logo.label }}</label>
+                                    {{ form.logo }}
+                                    {% if user.logo %}
+                                    <div class="mt-2">
+                                        <img src="{{ user.logo.url }}" alt="Current Logo" class="img-thumbnail" style="max-height: 100px;">
+                                    </div>
+                                    {% endif %}
+                                    <div class="form-text">{% trans "Upload your business logo (PNG, JPG, max 2MB)" %}</div>
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-circle me-2"></i> {% trans "Save Changes" %}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preferences Tab -->
+                <div class="tab-pane fade" id="preferences">
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-gear text-primary me-2"></i> {% trans "Preferences" %}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold mb-3">{% trans "Invoice Defaults" %}</h6>
+                                    <div class="mb-3">
+                                        <label class="form-label">{% trans "Default Currency" %}</label>
+                                        <select class="form-select">
+                                            <option value="HTG">{% trans "Haitian Gourdes (HTG)" %}</option>
+                                            <option value="USD">{% trans "US Dollars (USD)" %}</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{% trans "Default Tax Rate" %}</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" value="0" step="0.01" min="0" max="100">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{% trans "Payment Terms (Days)" %}</label>
+                                        <select class="form-select">
+                                            <option value="15">15 {% trans "days" %}</option>
+                                            <option value="30" selected>30 {% trans "days" %}</option>
+                                            <option value="45">45 {% trans "days" %}</option>
+                                            <option value="60">60 {% trans "days" %}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold mb-3">{% trans "Display Options" %}</h6>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="showLogo" checked>
+                                        <label class="form-check-label" for="showLogo">
+                                            {% trans "Show logo on invoices" %}
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="showTaxId" checked>
+                                        <label class="form-check-label" for="showTaxId">
+                                            {% trans "Show tax ID on invoices" %}
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="autoCalculate" checked>
+                                        <label class="form-check-label" for="autoCalculate">
+                                            {% trans "Auto-calculate totals" %}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn btn-primary">
+                                    <i class="bi bi-check-circle me-2"></i> {% trans "Save Preferences" %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Tab -->
+                <div class="tab-pane fade" id="security">
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-shield-lock text-primary me-2"></i> {% trans "Security Settings" %}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold mb-3">{% trans "Password" %}</h6>
+                                    <p class="text-muted">{% trans "Keep your account secure with a strong password" %}</p>
+                                    <a href="{% url 'password_change' %}" class="btn btn-outline-primary">
+                                        <i class="bi bi-key me-2"></i> {% trans "Change Password" %}
+                                    </a>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold mb-3">{% trans "Account Actions" %}</h6>
+                                    <p class="text-muted">{% trans "Manage your account data and settings" %}</p>
+                                    <div class="d-grid gap-2">
+                                        <button type="button" class="btn btn-outline-info">
+                                            <i class="bi bi-download me-2"></i> {% trans "Export Data" %}
+                                        </button>
+                                        <a href="{% url 'profile_delete' %}" class="btn btn-outline-danger">
+                                            <i class="bi bi-trash me-2"></i> {% trans "Delete Account" %}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications Tab -->
+                <div class="tab-pane fade" id="notifications">
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-bell text-primary me-2"></i> {% trans "Notification Settings" %}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold mb-3">{% trans "Email Notifications" %}</h6>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="emailInvoicePaid" checked>
+                                        <label class="form-check-label" for="emailInvoicePaid">
+                                            {% trans "Invoice payment received" %}
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="emailInvoiceOverdue" checked>
+                                        <label class="form-check-label" for="emailInvoiceOverdue">
+                                            {% trans "Invoice overdue reminders" %}
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="emailWeeklyReport">
+                                        <label class="form-check-label" for="emailWeeklyReport">
+                                            {% trans "Weekly business reports" %}
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold mb-3">{% trans "System Notifications" %}</h6>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="systemUpdates" checked>
+                                        <label class="form-check-label" for="systemUpdates">
+                                            {% trans "System updates and maintenance" %}
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="newFeatures" checked>
+                                        <label class="form-check-label" for="newFeatures">
+                                            {% trans "New feature announcements" %}
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="marketingEmails">
+                                        <label class="form-check-label" for="marketingEmails">
+                                            {% trans "Marketing and promotional emails" %}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn btn-primary">
+                                    <i class="bi bi-check-circle me-2"></i> {% trans "Save Notifications" %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle tab switching
+    const tabLinks = document.querySelectorAll('[data-bs-toggle="pill"]');
+    tabLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Remove active class from all tabs and content
+            tabLinks.forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('show', 'active');
+            });
+            
+            // Add active class to clicked tab
+            this.classList.add('active');
+            
+            // Show corresponding content
+            const targetId = this.getAttribute('href').substring(1);
+            const targetPane = document.getElementById(targetId);
+            if (targetPane) {
+                targetPane.classList.add('show', 'active');
+            }
+        });
+    });
+    
+    // Apply Bootstrap classes to form inputs
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        if (input.type !== 'checkbox' && input.type !== 'radio' && input.type !== 'file') {
+            input.classList.add('form-control');
+        } else if (input.type === 'checkbox' || input.type === 'radio') {
+            input.classList.add('form-check-input');
+        } else if (input.type === 'file') {
+            input.classList.add('form-control');
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,269 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block meta_description %}Fakti - Modern Invoice Generator for Haitian Businesses{% endblock %}">
+    
+    <title>{% block title %}Fakti - Invoice Generator{% endblock %}</title>
+    
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="{% url 'home' %}">
+                <span class="brand-icon-wrapper me-2">
+                    <i class="bi bi-file-earmark-text"></i>
+                </span>
+                <span class="brand-text">Fakti</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link d-flex align-items-center" href="{% url 'dashboard' %}">
+                                <i class="bi bi-grid-fill me-2"></i> {% trans "Dashboard" %}
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="invoiceDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-file-text-fill me-2"></i> {% trans "Invoices" %}
+                            </a>
+                            <ul class="dropdown-menu shadow-lg">
+                                <li><a class="dropdown-item d-flex align-items-center" href="{% url 'invoice_dashboard' %}">
+                                    <i class="bi bi-grid-3x3-gap-fill me-2 text-primary"></i> {% trans "Invoice Dashboard" %}
+                                </a></li>
+                                <li><a class="dropdown-item d-flex align-items-center" href="{% url 'invoice_list' %}">
+                                    <i class="bi bi-list-task me-2 text-info"></i> {% trans "All Invoices" %}
+                                </a></li>
+                                <li><a class="dropdown-item d-flex align-items-center" href="{% url 'invoice_create' %}">
+                                    <i class="bi bi-plus-circle-fill me-2 text-success"></i> {% trans "Create Invoice" %}
+                                </a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="clientDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-people-fill me-2"></i> {% trans "Clients" %}
+                            </a>
+                            <ul class="dropdown-menu shadow-lg">
+                                <li><a class="dropdown-item d-flex align-items-center" href="{% url 'client_list' %}">
+                                    <i class="bi bi-list-task me-2 text-info"></i> {% trans "All Clients" %}
+                                </a></li>
+                                <li><a class="dropdown-item d-flex align-items-center" href="{% url 'client_create' %}">
+                                    <i class="bi bi-person-plus-fill me-2 text-success"></i> {% trans "Add Client" %}
+                                </a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="itemsDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-box-seam-fill me-2"></i> {% trans "Items" %}
+                            </a>
+                            <ul class="dropdown-menu shadow-lg">
+                                <li><a class="dropdown-item d-flex align-items-center" href="{% url 'item_list' %}">
+                                    <i class="bi bi-list-task me-2 text-info"></i> {% trans "All Items" %}
+                                </a></li>
+                                <li><a class="dropdown-item d-flex align-items-center" href="{% url 'item_create' %}">
+                                    <i class="bi bi-plus-square-fill me-2 text-success"></i> {% trans "Add Item" %}
+                                </a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown ms-2">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center user-dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <div class="user-avatar me-2">
+                                    <i class="bi bi-person-circle"></i>
+                                </div>
+                                <span class="d-none d-lg-inline">{{ user.username }}</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg">
+                                <li class="dropdown-header">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-person-circle me-2 fs-4"></i>
+                                        <div>
+                                            <div class="fw-semibold">{{ user.username }}</div>
+                                            <small class="text-muted">{{ user.email }}</small>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item d-flex align-items-center" href="{% url 'settings' %}">
+                                    <i class="bi bi-gear-fill me-2 text-secondary"></i> {% trans "Settings" %}
+                                </a></li>
+                                <li><a class="dropdown-item d-flex align-items-center" href="{% url 'profile' %}">
+                                    <i class="bi bi-person-badge-fill me-2 text-primary"></i> {% trans "Profile" %}
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item d-flex align-items-center text-danger" href="{% url 'logout' %}">
+                                    <i class="bi bi-box-arrow-right me-2"></i> {% trans "Logout" %}
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link d-flex align-items-center" href="{% url 'login' %}">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>{% trans "Login" %}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-light ms-2 d-flex align-items-center" href="{% url 'register' %}">
+                                <i class="bi bi-person-plus me-2"></i>{% trans "Sign Up" %}
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    <!-- Language Switcher -->
+                    <li class="nav-item dropdown ms-2">
+                        <a class="nav-link d-flex align-items-center justify-content-center language-toggle" 
+                           href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-translate"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg">
+                            <li class="dropdown-header">{% trans "Select Language" %}</li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form action="{% url 'set_language' %}" method="post">
+                                    {% csrf_token %}
+                                    <input name="next" type="hidden" value="{{ request.path }}">
+                                    <button type="submit" name="language" value="ht" class="dropdown-item d-flex align-items-center">
+                                        <i class="bi bi-flag-fill me-2 text-primary"></i> Kreyòl
+                                    </button>
+                                    <button type="submit" name="language" value="en" class="dropdown-item d-flex align-items-center">
+                                        <i class="bi bi-flag-fill me-2 text-danger"></i> English
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages/Alerts -->
+    {% if messages %}
+    <div class="container mt-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="py-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row gy-4 pb-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="footer-brand mb-3">
+                        <div class="brand-icon-wrapper me-2">
+                            <i class="bi bi-file-earmark-text"></i>
+                        </div>
+                        <h5 class="d-inline-block mb-0">Fakti</h5>
+                    </div>
+                    <p class="footer-description">{% trans "Modern invoice generator built for Haitian businesses. Create professional invoices in Creole or English." %}</p>
+                    <div class="footer-badge mt-3">
+                        <span class="badge bg-light text-dark px-3 py-2">
+                            <span class="haiti-flag-icon">🇭🇹</span> {% trans "Proudly Haitian" %}
+                        </span>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="footer-heading">{% trans "Product" %}</h6>
+                    <ul class="footer-links list-unstyled">
+                        <li><a href="{% url 'dashboard' %}"><i class="bi bi-chevron-right me-1"></i>{% trans "Dashboard" %}</a></li>
+                        <li><a href="{% url 'invoice_list' %}"><i class="bi bi-chevron-right me-1"></i>{% trans "Invoices" %}</a></li>
+                        <li><a href="{% url 'client_list' %}"><i class="bi bi-chevron-right me-1"></i>{% trans "Clients" %}</a></li>
+                        <li><a href="{% url 'item_list' %}"><i class="bi bi-chevron-right me-1"></i>{% trans "Items" %}</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="footer-heading">{% trans "Resources" %}</h6>
+                    <ul class="footer-links list-unstyled">
+                        <li><a href="#"><i class="bi bi-chevron-right me-1"></i>{% trans "Help Center" %}</a></li>
+                        <li><a href="#"><i class="bi bi-chevron-right me-1"></i>{% trans "Tutorials" %}</a></li>
+                        <li><a href="#"><i class="bi bi-chevron-right me-1"></i>{% trans "Support" %}</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="footer-heading">{% trans "Company" %}</h6>
+                    <ul class="footer-links list-unstyled">
+                        <li><a href="#"><i class="bi bi-chevron-right me-1"></i>{% trans "About Us" %}</a></li>
+                        <li><a href="#"><i class="bi bi-chevron-right me-1"></i>{% trans "Contact" %}</a></li>
+                        <li><a href="#"><i class="bi bi-chevron-right me-1"></i>{% trans "Privacy" %}</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="footer-heading">{% trans "Connect" %}</h6>
+                    <div class="social-links">
+                        <a href="#" class="social-link" title="Twitter">
+                            <i class="bi bi-twitter"></i>
+                        </a>
+                        <a href="#" class="social-link" title="Facebook">
+                            <i class="bi bi-facebook"></i>
+                        </a>
+                        <a href="#" class="social-link" title="Instagram">
+                            <i class="bi bi-instagram"></i>
+                        </a>
+                        <a href="#" class="social-link" title="LinkedIn">
+                            <i class="bi bi-linkedin"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="row align-items-center py-4">
+                    <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                        <p class="footer-copyright mb-0">
+                            &copy; 2025 <strong>Fakti</strong>. {% trans "All rights reserved." %}
+                        </p>
+                    </div>
+                    <div class="col-md-6 text-center text-md-end">
+                        <div class="footer-legal-links">
+                            <a href="#">{% trans "Terms" %}</a>
+                            <span class="mx-2">•</span>
+                            <a href="#">{% trans "Privacy" %}</a>
+                            <span class="mx-2">•</span>
+                            <a href="#">{% trans "Cookies" %}</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'js/main.js' %}"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

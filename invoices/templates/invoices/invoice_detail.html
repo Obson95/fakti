@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Invoice" %} {{ invoice.invoice_number }} - Fakti{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'invoice_list' %}">{% trans "Invoices" %}</a></li>
+            <li class="breadcrumb-item active">{{ invoice.invoice_number }}</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">
+            {% trans "Invoice" %}: {{ invoice.invoice_number }}
+            {% if invoice.status == 'draft' %}
+            <span class="badge bg-secondary">{% trans "Draft" %}</span>
+            {% elif invoice.status == 'sent' %}
+            <span class="badge bg-info">{% trans "Sent" %}</span>
+            {% elif invoice.status == 'paid' %}
+            <span class="badge bg-success">{% trans "Paid" %}</span>
+            {% elif invoice.status == 'overdue' %}
+            <span class="badge bg-danger">{% trans "Overdue" %}</span>
+            {% elif invoice.status == 'canceled' %}
+            <span class="badge bg-dark">{% trans "Canceled" %}</span>
+            {% endif %}
+        </h1>
+        
+        <div class="btn-group">
+            <a href="{% url 'invoice_pdf' invoice.pk %}" class="btn btn-primary">
+                <i class="bi bi-file-pdf"></i> {% trans "Download PDF" %}
+            </a>
+            {% if invoice.client.email %}
+            <a href="{% url 'invoice_send' invoice.pk %}" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#sendEmailModal" data-modal-url="{% url 'invoice_send' invoice.pk %}">
+                <i class="bi bi-envelope-fill"></i> {% trans "Send via Email" %}
+            </a>
+            {% endif %}
+            <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="visually-hidden">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="{% url 'invoice_update' invoice.pk %}">
+                    <i class="bi bi-pencil"></i> {% trans "Edit Invoice" %}
+                </a></li>
+                
+                {% if invoice.status != 'sent' %}
+                <li><a class="dropdown-item" href="{% url 'invoice_change_status' invoice.pk 'sent' %}">
+                    <i class="bi bi-send"></i> {% trans "Mark as Sent" %}
+                </a></li>
+                {% endif %}
+                
+                {% if invoice.status != 'paid' %}
+                <li><a class="dropdown-item" href="{% url 'invoice_change_status' invoice.pk 'paid' %}">
+                    <i class="bi bi-check-circle"></i> {% trans "Mark as Paid" %}
+                </a></li>
+                {% endif %}
+                
+                {% if invoice.status != 'overdue' %}
+                <li><a class="dropdown-item" href="{% url 'invoice_change_status' invoice.pk 'overdue' %}">
+                    <i class="bi bi-exclamation-triangle"></i> {% trans "Mark as Overdue" %}
+                </a></li>
+                {% endif %}
+                
+                {% if invoice.status != 'canceled' %}
+                <li><a class="dropdown-item" href="{% url 'invoice_change_status' invoice.pk 'canceled' %}">
+                    <i class="bi bi-x-circle"></i> {% trans "Cancel Invoice" %}
+                </a></li>
+                {% endif %}
+                
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="{% url 'invoice_delete' invoice.pk %}">
+                    <i class="bi bi-trash"></i> {% trans "Delete Invoice" %}
+                </a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Invoice Preview -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body p-4">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h4 class="mb-3">{% trans "From" %}:</h4>
+                    <div class="mb-1 fw-bold">{{ invoice.user.get_full_name|default:invoice.user.username }}</div>
+                    {% if invoice.user.business_name %}
+                    <div>{{ invoice.user.business_name }}</div>
+                    {% endif %}
+                    {% if invoice.user.business_address %}
+                    <div>{{ invoice.user.business_address }}</div>
+                    {% endif %}
+                    <div>{{ invoice.user.email }}</div>
+                </div>
+                
+                <div class="col-md-6 text-md-end">
+                    <h4 class="mb-3">{% trans "To" %}:</h4>
+                    <div class="mb-1 fw-bold">{{ invoice.client.name }}</div>
+                    {% if invoice.client.email %}
+                    <div>{{ invoice.client.email }}</div>
+                    {% endif %}
+                    {% if invoice.client.phone %}
+                    <div>{{ invoice.client.phone }}</div>
+                    {% endif %}
+                    <div>{{ invoice.client.full_address }}</div>
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="mb-1">
+                        <span class="fw-bold">{% trans "Invoice Number" %}:</span> {{ invoice.invoice_number }}
+                    </div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="mb-1">
+                        <span class="fw-bold">{% trans "Issue Date" %}:</span> {{ invoice.issue_date }}
+                    </div>
+                    <div>
+                        <span class="fw-bold">{% trans "Due Date" %}:</span> {{ invoice.due_date }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "Item" %}</th>
+                            <th class="text-end">{% trans "Quantity" %}</th>
+                            <th class="text-end">{% trans "Unit Price" %}</th>
+                            <th class="text-end">{% trans "Total" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in invoice.line_items.all %}
+                        <tr>
+                            <td>{{ item.description }}</td>
+                            <td class="text-end">{{ item.quantity }}</td>
+                            <td class="text-end">{{ item.unit_price|floatformat:2 }} {{ invoice.currency }}</td>
+                            <td class="text-end">{{ item.line_total|floatformat:2 }} {{ invoice.currency }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-3 text-muted">
+                                {% trans "No items in this invoice" %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="text-end fw-bold">{% trans "Subtotal" %}:</td>
+                            <td class="text-end">{{ invoice.subtotal|floatformat:2 }} {{ invoice.currency }}</td>
+                        </tr>
+                        
+                        {% if invoice.tax_percent > 0 %}
+                        <tr>
+                            <td colspan="3" class="text-end fw-bold">
+                                {% trans "Tax" %} ({{ invoice.tax_percent }}%):
+                            </td>
+                            <td class="text-end">{{ invoice.tax_amount|floatformat:2 }} {{ invoice.currency }}</td>
+                        </tr>
+                        {% endif %}
+                        
+                        {% if invoice.discount_percent > 0 %}
+                        <tr>
+                            <td colspan="3" class="text-end fw-bold">
+                                {% trans "Discount" %} ({{ invoice.discount_percent }}%):
+                            </td>
+                            <td class="text-end">-{{ invoice.discount_amount|floatformat:2 }} {{ invoice.currency }}</td>
+                        </tr>
+                        {% endif %}
+                        
+                        <tr class="table-active">
+                            <td colspan="3" class="text-end fw-bold">{% trans "Total" %}:</td>
+                            <td class="text-end fw-bold">{{ invoice.total|floatformat:2 }} {{ invoice.currency }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            
+            {% if invoice.notes %}
+            <div class="mt-4">
+                <h5>{% trans "Notes" %}:</h5>
+                <p>{{ invoice.notes }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+        const modalEl = document.createElement('div');
+        modalEl.className = 'modal fade';
+        modalEl.id = 'sendEmailModal';
+        modalEl.tabIndex = -1;
+        modalEl.innerHTML = `
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-body d-flex justify-content-center align-items-center" style="min-height: 200px;">
+                        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+                    </div>
+                </div>
+            </div>`;
+        document.body.appendChild(modalEl);
+
+        const modal = new bootstrap.Modal(modalEl);
+        const trigger = document.querySelector('[data-modal-url]');
+        if (trigger) {
+                trigger.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const url = trigger.getAttribute('data-modal-url');
+                        modal.show();
+                        fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+                            .then(r => r.text())
+                            .then(html => {
+                                modalEl.querySelector('.modal-content').innerHTML = html;
+                            })
+                            .catch(() => {
+                                modalEl.querySelector('.modal-content').innerHTML = '<div class="p-4">Failed to load form. Please reload the page.</div>'
+                            });
+                });
+        }
+});
+</script>
+{% endblock %}

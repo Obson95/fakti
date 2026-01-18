@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="400" height="300" fill="#f8f9fa"/>
+  
+  <!-- Main Invoice Document -->
+  <rect x="80" y="40" width="240" height="220" rx="12" fill="white" stroke="#e9ecef" stroke-width="2"/>
+  
+  <!-- Header Section -->
+  <rect x="100" y="60" width="200" height="40" rx="6" fill="#0d6efd" opacity="0.1"/>
+  <rect x="110" y="70" width="60" height="8" rx="4" fill="#0d6efd"/>
+  <rect x="110" y="82" width="40" height="6" rx="3" fill="#6c757d" opacity="0.5"/>
+  
+  <!-- Invoice Lines -->
+  <rect x="110" y="120" width="180" height="4" rx="2" fill="#dee2e6"/>
+  <rect x="110" y="130" width="160" height="4" rx="2" fill="#dee2e6"/>
+  <rect x="110" y="140" width="140" height="4" rx="2" fill="#dee2e6"/>
+  <rect x="110" y="150" width="120" height="4" rx="2" fill="#dee2e6"/>
+  
+  <!-- Amount Section -->
+  <rect x="200" y="180" width="90" height="30" rx="6" fill="#10b981" opacity="0.1"/>
+  <rect x="210" y="190" width="30" height="6" rx="3" fill="#10b981"/>
+  <rect x="250" y="190" width="30" height="6" rx="3" fill="#10b981"/>
+  
+  <!-- Floating Elements -->
+  <circle cx="50" cy="80" r="20" fill="#ffc107" opacity="0.2"/>
+  <circle cx="350" cy="100" r="15" fill="#dc3545" opacity="0.2"/>
+  <circle cx="60" cy="200" r="12" fill="#0dcaf0" opacity="0.2"/>
+  <circle cx="340" cy="220" r="18" fill="#198754" opacity="0.2"/>
+  
+  <!-- Decorative Lines -->
+  <path d="M30 150 Q50 140 70 150" stroke="#0d6efd" stroke-width="2" fill="none" opacity="0.3"/>
+  <path d="M330 180 Q350 170 370 180" stroke="#dc3545" stroke-width="2" fill="none" opacity="0.3"/>
+  
+  <!-- Money Icons -->
+  <g transform="translate(340, 40)">
+    <circle cx="15" cy="15" r="15" fill="#198754" opacity="0.1"/>
+    <text x="15" y="20" text-anchor="middle" font-family="Arial" font-size="12" fill="#198754" font-weight="bold">$</text>
+  </g>
+  
+  <g transform="translate(30, 240)">
+    <circle cx="12" cy="12" r="12" fill="#ffc107" opacity="0.1"/>
+    <text x="12" y="16" text-anchor="middle" font-family="Arial" font-size="10" fill="#ffc107" font-weight="bold">₹</text>
+  </g>
+  
+  <!-- Checkmark -->
+  <g transform="translate(300, 200)">
+    <circle cx="12" cy="12" r="12" fill="#198754" opacity="0.2"/>
+    <path d="M8 12 L11 15 L16 9" stroke="#198754" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

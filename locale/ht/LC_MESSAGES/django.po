@@ -1,0 +1,509 @@
+# Haitian Creole translation for Fakti
+# Copyright (C) 2025 Fakti
+# This file is distributed under the same license as the Fakti package.
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-06 21:12-0500\n"
+"PO-Revision-Date: 2025-10-06 21:12-0500\n"
+"Last-Translator: Fakti Team\n"
+"Language-Team: Haitian Creole <ht@li.org>\n"
+"Language: ht\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+# Navigation
+msgid "Dashboard"
+msgstr "Tablo Bò"
+
+msgid "Invoices"
+msgstr "Fakti"
+
+msgid "Clients"
+msgstr "Kliyan"
+
+msgid "Settings"
+msgstr "Paramèt"
+
+msgid "Profile"
+msgstr "Pwofil"
+
+msgid "Logout"
+msgstr "Dekonekte"
+
+msgid "Login"
+msgstr "Konekte"
+
+msgid "Sign Up"
+msgstr "Kreye Kont"
+
+msgid "Select Language"
+msgstr "Chwazi Lang"
+
+# Dashboard
+msgid "Welcome back"
+msgstr "Byenveni ankò"
+
+msgid "Total Invoices"
+msgstr "Total Fakti"
+
+msgid "Paid Invoices"
+msgstr "Fakti Peye"
+
+msgid "Unpaid Invoices"
+msgstr "Fakti Pa Peye"
+
+msgid "Total Revenue"
+msgstr "Revni Total"
+
+msgid "Quick Actions"
+msgstr "Aksyon Rapid"
+
+msgid "Recent Invoices"
+msgstr "Dènye Fakti"
+
+msgid "No invoices yet"
+msgstr "Pa gen fakti pou kounye a"
+
+msgid "Create your first invoice to get started!"
+msgstr "Kreye premye fakti ou pou kòmanse!"
+
+msgid "New Invoice"
+msgstr "Nouvo Fakti"
+
+msgid "Add Client"
+msgstr "Ajoute Kliyan"
+
+msgid "Add Clients"
+msgstr "Ajoute Kliyan Yo"
+
+msgid "Enter client information once and reuse it"
+msgstr "Antre enfòmasyon kliyan yon sèl fwa epi reyitilize li"
+
+msgid "View Invoices"
+msgstr "Wè Fakti"
+
+msgid "Manage Clients"
+msgstr "Jere Kliyan"
+
+msgid "Create Invoice"
+msgstr "Kreye Fakti"
+
+msgid "View all"
+msgstr "Gade Tout"
+
+# Invoice Dashboard
+msgid "Invoice Dashboard"
+msgstr "Tablo Fakti"
+
+msgid "Manage your invoices and track payments"
+msgstr "Jere fakti ou yo epi swiv peman yo"
+
+msgid "Total Outstanding"
+msgstr "Total ki Pa Peye"
+
+msgid "Total Paid"
+msgstr "Total Peye"
+
+msgid "Overdue Invoices"
+msgstr "Fakti An Reta"
+
+msgid "Invoice Status"
+msgstr "Estati Fakti"
+
+msgid "Draft"
+msgstr "Bouyon"
+
+msgid "Sent"
+msgstr "Voye"
+
+msgid "Paid"
+msgstr "Peye"
+
+msgid "Overdue"
+msgstr "An Reta"
+
+msgid "Canceled"
+msgstr "Anile"
+
+msgid "View All Invoices"
+msgstr "Wè Tout Fakti"
+
+msgid "Recent Clients"
+msgstr "Dènye Kliyan"
+
+msgid "No clients found"
+msgstr "Pa gen kliyan ki jwenn"
+
+msgid "Add your first client"
+msgstr "Ajoute premye kliyan ou"
+
+msgid "View All Clients"
+msgstr "Wè Tout Kliyan"
+
+# Invoice List
+msgid "All Invoices"
+msgstr "Tout Fakti"
+
+msgid "Filter"
+msgstr "Filtre"
+
+msgid "Date"
+msgstr "Dat"
+
+msgid "Due Date"
+msgstr "Dat Limit"
+
+msgid "Client"
+msgstr "Kliyan"
+
+msgid "Amount"
+msgstr "Kantite"
+
+msgid "Status"
+msgstr "Estati"
+
+msgid "Actions"
+msgstr "Aksyon"
+
+msgid "No invoices found"
+msgstr "Pa gen fakti ki jwenn"
+
+# Invoice Create/Edit
+msgid "Create New Invoice"
+msgstr "Kreye Nouvo Fakti"
+
+msgid "Edit Invoice"
+msgstr "Modifye Fakti"
+
+msgid "Invoice Details"
+msgstr "Detay Fakti"
+
+msgid "Invoice Number"
+msgstr "Nimewo Fakti"
+
+msgid "Issue Date"
+msgstr "Dat Emisyon"
+
+msgid "Client Information"
+msgstr "Enfòmasyon Kliyan"
+
+msgid "Select Client"
+msgstr "Chwazi Kliyan"
+
+msgid "Items"
+msgstr "Atik"
+
+msgid "Description"
+msgstr "Deskripsyon"
+
+msgid "Quantity"
+msgstr "Kantite"
+
+msgid "Unit Price"
+msgstr "Pri Inite"
+
+msgid "Total"
+msgstr "Total"
+
+msgid "Add Item"
+msgstr "Ajoute Atik"
+
+msgid "Subtotal"
+msgstr "Sou-total"
+
+msgid "Tax"
+msgstr "Taks"
+
+msgid "Discount"
+msgstr "Rabè"
+
+msgid "Grand Total"
+msgstr "Gran Total"
+
+msgid "Notes"
+msgstr "Nòt"
+
+msgid "Terms & Conditions"
+msgstr "Tèm ak Kondisyon"
+
+msgid "Save Invoice"
+msgstr "Anrejistre Fakti"
+
+msgid "Send Invoice"
+msgstr "Voye Fakti"
+
+msgid "Cancel"
+msgstr "Anile"
+
+# Email Modal
+msgid "Send Invoice via Email"
+msgstr "Voye Fakti pa Imèl"
+
+msgid "To"
+msgstr "Pou"
+
+msgid "CC"
+msgstr "Kopi (CC)"
+
+msgid "BCC"
+msgstr "Kopi Kache (BCC)"
+
+msgid "Subject"
+msgstr "Sijè"
+
+msgid "Message"
+msgstr "Mesaj"
+
+msgid "Reply-To"
+msgstr "Reponn-A"
+
+msgid "Attach PDF"
+msgstr "Mete PDF an Atachman"
+
+msgid "Comma or semicolon separated emails"
+msgstr "Separa adrès imèl yo ak vigil oswa pwen-virgül"
+
+msgid "Send"
+msgstr "Voye"
+
+# Validation
+msgid "This invoice number is already used for your account."
+msgstr "Nimewo fakti sa a deja itilize pou kont ou."
+
+# Client
+msgid "All Clients"
+msgstr "Tout Kliyan"
+
+msgid "New Client"
+msgstr "Nouvo Kliyan"
+
+msgid "Add New Client"
+msgstr "Ajoute Nouvo Kliyan"
+
+msgid "Edit Client"
+msgstr "Modifye Kliyan"
+
+msgid "Client Details"
+msgstr "Detay Kliyan"
+
+msgid "Name"
+msgstr "Non"
+
+msgid "Email"
+msgstr "Imèl"
+
+msgid "Phone"
+msgstr "Telefòn"
+
+msgid "Address"
+msgstr "Adrès"
+
+msgid "City"
+msgstr "Vil"
+
+msgid "State/Province"
+msgstr "Depatman"
+
+msgid "Country"
+msgstr "Peyi"
+
+msgid "Save Client"
+msgstr "Anrejistre Kliyan"
+
+# Footer
+msgid ""
+"Modern invoice generator built for Haitian businesses. Create professional "
+"invoices in Creole or English."
+msgstr ""
+"Pwogram kreyasyon fakti modèn ki fèt pou biznis ayisyen yo. Kreye fakti "
+"pwofesyonèl nan kreyòl oswa angle."
+
+msgid "Proudly Haitian"
+msgstr "Fyèman Ayisyen"
+
+msgid "Product"
+msgstr "Pwodwi"
+
+msgid "Resources"
+msgstr "Resous"
+
+msgid "Help Center"
+msgstr "Sant Èd"
+
+msgid "Tutorials"
+msgstr "Titoryèl"
+
+msgid "Support"
+msgstr "Sipò"
+
+msgid "Company"
+msgstr "Konpayi"
+
+msgid "About Us"
+msgstr "Sou Nou"
+
+msgid "Contact"
+msgstr "Kontak"
+
+msgid "Privacy"
+msgstr "Vi Prive"
+
+msgid "Connect"
+msgstr "Konekte"
+
+msgid "All rights reserved."
+msgstr "Tout dwa rezève."
+
+msgid "Terms"
+msgstr "Tèm"
+
+msgid "Cookies"
+msgstr "Kouki"
+
+# Home Page
+msgid "Create Professional Invoices"
+msgstr "Kreye Fakti Pwofesyonèl"
+
+msgid "Modern invoice generator designed for Haitian businesses"
+msgstr "Pwogram kreyasyon fakti modèn ki fèt pou biznis ayisyen yo"
+
+msgid "Get Started"
+msgstr "Kòmanse"
+
+msgid "Get Started Free"
+msgstr "Kòmanse Gratis"
+
+msgid "Go to Dashboard"
+msgstr "Ale nan Tablo Bò"
+
+msgid "Learn More"
+msgstr "Aprann Plis"
+
+msgid "Why Choose Fakti"
+msgstr "Poukisa Chwazi Fakti"
+
+msgid "Why Choose Fakti?"
+msgstr "Poukisa Chwazi Fakti?"
+
+msgid "Built specifically for Haitian businesses"
+msgstr "Kreye espesyalman pou biznis ayisyen yo"
+
+msgid "Features"
+msgstr "Fonksyonalite"
+
+msgid "Easy to Use"
+msgstr "Fasil pou Itilize"
+
+msgid ""
+"Create professional invoices in minutes with our user-friendly interface."
+msgstr "Kreye fakti pwofesyonèl nan minit avèk entèfas fasil nou an."
+
+msgid "Multilingual"
+msgstr "Miltileng"
+
+msgid ""
+"Send invoices in Haitian Creole or English to match your client's "
+"preference."
+msgstr ""
+"Voye fakti nan Kreyòl Ayisyen oswa Anglè pou satisfè preferans kliyan ou."
+
+msgid "Automatic Calculations"
+msgstr "Kalkil Otomatik"
+
+msgid ""
+"Let us handle the math. Taxes, discounts, and totals calculated "
+"automatically."
+msgstr "Kite nou jere matematik la. Taks, rabè, ak total kalkile otomatikman."
+
+msgid "Client Management"
+msgstr "Jesyon Kliyan"
+
+msgid "Save client info. Track payment history. Stay organized."
+msgstr "Konsève enfòmasyon kliyan. Swiv istwa peman. Rete òganize."
+
+msgid "Mobile Friendly"
+msgstr "Konpatib pou Mobil"
+
+msgid "Maintain a database of your clients for easy invoice creation."
+msgstr "Kenbe yon baz done kliyan ou pou kreyasyon fakti fasil."
+
+msgid "Ready to get started?"
+msgstr "Ou pare pou kòmanse?"
+
+msgid "Start creating professional invoices today. It's free to get started."
+msgstr "Kòmanse kreye fakti pwofesyonèl jodi a. Li gratis pou kòmanse."
+
+msgid "Welcome to Fakti"
+msgstr "Byenvini nan Fakti"
+
+msgid "The modern invoice generator for Haitian businesses"
+msgstr "Pwogram kreyasyon fakti modèn pou biznis ayisyen yo"
+
+msgid ""
+"Create professional invoices in Creole or English. Manage clients. Get paid "
+"faster."
+msgstr ""
+"Kreye fakti pwofesyonèl nan Kreyòl oswa Anglè. Jere kliyan. Resevwa peman pi"
+" vit."
+
+msgid "Bilingual Support"
+msgstr "Sipò Bileng"
+
+msgid ""
+"Create invoices in Haitian Creole or English. Switch languages anytime."
+msgstr "Kreye fakti nan Kreyòl Ayisyen oswa Anglè. Chanje lang nenpòt lè."
+
+msgid "Fast & Easy"
+msgstr "Rapid & Fasil"
+
+msgid "Create professional invoices in minutes. No design skills needed."
+msgstr "Kreye fakti pwofesyonèl nan minit. Pa bezwen konesans konsepsyon."
+
+msgid "Secure & Reliable"
+msgstr "Sekirite & Fyab"
+
+msgid "Your data is safe. Cloud-based with automatic backups."
+msgstr "Done ou yo an sekirite. Baze sou nwaj ak sovgad otomatik."
+
+msgid "PDF Download"
+msgstr "Telechaje PDF"
+
+msgid "Download invoices as PDF. Share via email or print."
+msgstr "Telechaje fakti yo kòm PDF. Pataje pa imèl oswa enprime."
+
+msgid "Works on any device. Manage invoices on the go."
+msgstr "Fonksyone sou nenpòt aparèy. Jere fakti yo pandan ou an deplasman."
+
+msgid "Join hundreds of Haitian businesses using Fakti"
+msgstr "Rejwenn plizyè santèn biznis ayisyen kap itilize Fakti"
+
+msgid "Create Free Account"
+msgstr "Kreye Kont Gratis"
+
+msgid "How It Works"
+msgstr "Kijan Li Mache"
+
+msgid "Get started in three simple steps"
+msgstr "Kòmanse nan twa etap senp"
+
+msgid "Create Account"
+msgstr "Kreye Kont"
+
+msgid "Sign up for free in less than a minute"
+msgstr "Enskri gratis nan mwens pase yon minit"
+
+msgid "Generate Invoices"
+msgstr "Jenere Fakti"
+
+msgid "Create professional PDF invoices in seconds"
+msgstr "Kreye fakti PDF pwofesyonèl nan kèk segond"
+
+msgid "Fakti - Modern Invoice Generator for Haitian Businesses"
+msgstr "Fakti - Pwogram Kreyasyon Fakti Modèn pou Biznis Ayisyen"
+
+msgid "Fakti - Invoice Generator"
+msgstr "Fakti - Pwogram Kreyasyon Fakti"

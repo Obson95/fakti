@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Dashboard" %} - Fakti{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="d-flex align-items-center">
+                <div class="dashboard-welcome">
+                    <h1 class="fw-bold">{% trans "Dashboard" %}</h1>
+                    <p class="text-muted mb-0">{% trans "Welcome back" %}, <span class="fw-medium">{{ user.username }}</span>!</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="d-flex justify-content-lg-end mt-3 mt-lg-0">
+                <a href="{% url 'invoice_create' %}" class="btn btn-primary d-flex align-items-center">
+                    <i class="bi bi-plus-circle me-2"></i> {% trans "New Invoice" %}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <!-- Total Invoices -->
+        <div class="col-md-6 col-xl-3">
+            <div class="stat-card-modern primary-gradient h-100">
+                <div class="stat-card-icon-container">
+                    <div class="stat-card-icon">
+                        <i class="bi bi-receipt"></i>
+                    </div>
+                </div>
+                <div class="stat-card-content">
+                    <h3 class="stat-card-number">{{ total_invoices }}</h3>
+                    <p class="stat-card-label">{% trans "Total Invoices" %}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paid Invoices -->
+        <div class="col-md-6 col-xl-3">
+            <div class="stat-card-modern success-gradient h-100">
+                <div class="stat-card-icon-container">
+                    <div class="stat-card-icon">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                </div>
+                <div class="stat-card-content">
+                    <h3 class="stat-card-number">{{ paid_invoices }}</h3>
+                    <p class="stat-card-label">{% trans "Paid Invoices" %}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overdue Invoices -->
+        <div class="col-md-6 col-xl-3">
+            <div class="stat-card-modern danger-gradient h-100">
+                <div class="stat-card-icon-container">
+                    <div class="stat-card-icon">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                </div>
+                <div class="stat-card-content">
+                    <h3 class="stat-card-number">{{ overdue_invoices }}</h3>
+                    <p class="stat-card-label">{% trans "Overdue Invoices" %}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Revenue -->
+        <div class="col-md-6 col-xl-3">
+            <div class="stat-card-modern warning-gradient h-100">
+                <div class="stat-card-icon-container">
+                    <div class="stat-card-icon">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                </div>
+                <div class="stat-card-content">
+                    <h3 class="stat-card-number">{{ total_revenue|floatformat:0 }}</h3>
+                    <p class="stat-card-label">{% trans "Total Revenue" %} (HTG)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Stats Row -->
+    <div class="row g-4 mb-4">
+        <!-- Total Clients -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h4 class="fw-bold mb-1">{{ total_clients }}</h4>
+                            <p class="text-muted mb-0 small">{% trans "Total Clients" %}</p>
+                        </div>
+                        <div class="text-primary">
+                            <i class="bi bi-people fs-2"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Outstanding Amount -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h4 class="fw-bold mb-1">{{ total_outstanding|floatformat:0 }}</h4>
+                            <p class="text-muted mb-0 small">{% trans "Outstanding" %} (HTG)</p>
+                        </div>
+                        <div class="text-warning">
+                            <i class="bi bi-hourglass-split fs-2"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h4 class="fw-bold mb-1">
+                                {{ payment_rate }}%
+                            </h4>
+                            <p class="text-muted mb-0 small">{% trans "Payment Rate" %}</p>
+                        </div>
+                        <div class="text-success">
+                            <i class="bi bi-graph-up fs-2"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions & Recent Invoices -->
+    <div class="row g-4">
+        <!-- Quick Actions -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold mb-4">
+                        <i class="bi bi-lightning-charge text-primary me-2"></i> {% trans "Quick Actions" %}
+                    </h5>
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'invoice_create' %}" class="btn btn-outline-primary d-flex align-items-center justify-content-between p-3">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-plus-circle me-3 fs-5"></i>
+                                <span>{% trans "New Invoice" %}</span>
+                            </div>
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                        <a href="{% url 'client_create' %}" class="btn btn-outline-success d-flex align-items-center justify-content-between p-3">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-person-plus me-3 fs-5"></i>
+                                <span>{% trans "Add Client" %}</span>
+                            </div>
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                        <a href="{% url 'invoice_list' %}" class="btn btn-outline-info d-flex align-items-center justify-content-between p-3">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-list-ul me-3 fs-5"></i>
+                                <span>{% trans "View Invoices" %}</span>
+                            </div>
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                        <a href="{% url 'client_list' %}" class="btn btn-outline-secondary d-flex align-items-center justify-content-between p-3">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-people me-3 fs-5"></i>
+                                <span>{% trans "Manage Clients" %}</span>
+                            </div>
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Invoices -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title fw-bold mb-0">
+                            <i class="bi bi-clock-history text-primary me-2"></i> {% trans "Recent Invoices" %}
+                        </h5>
+                        <a href="{% url 'invoice_list' %}" class="btn btn-sm btn-link text-decoration-none">
+                            {% trans "View all" %} <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if recent_invoices %}
+                        <div class="table-responsive">
+                            <table class="table table-hover modern-table">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "Invoice #" %}</th>
+                                        <th>{% trans "Client" %}</th>
+                                        <th>{% trans "Date" %}</th>
+                                        <th>{% trans "Amount" %}</th>
+                                        <th>{% trans "Status" %}</th>
+                                        <th class="text-end">{% trans "Actions" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for invoice in recent_invoices %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'invoice_detail' invoice.pk %}" class="text-decoration-none fw-medium">
+                                                {{ invoice.invoice_number }}
+                                            </a>
+                                        </td>
+                                        <td>{{ invoice.client.name }}</td>
+                                        <td>{{ invoice.issue_date|date:"M d, Y" }}</td>
+                                        <td>
+                                            <span class="fw-medium">{{ invoice.total|floatformat:2 }} {{ invoice.currency }}</span>
+                                        </td>
+                                        <td>
+                                            {% if invoice.status == 'paid' %}
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check-circle me-1"></i>{% trans "Paid" %}
+                                                </span>
+                                            {% elif invoice.status == 'sent' %}
+                                                <span class="badge bg-info">
+                                                    <i class="bi bi-send me-1"></i>{% trans "Sent" %}
+                                                </span>
+                                            {% elif invoice.status == 'overdue' %}
+                                                <span class="badge bg-danger">
+                                                    <i class="bi bi-exclamation-triangle me-1"></i>{% trans "Overdue" %}
+                                                </span>
+                                            {% elif invoice.status == 'draft' %}
+                                                <span class="badge bg-secondary">
+                                                    <i class="bi bi-file-earmark me-1"></i>{% trans "Draft" %}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="bi bi-clock me-1"></i>{{ invoice.get_status_display }}
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'invoice_detail' invoice.pk %}" class="btn btn-outline-primary btn-sm" title="{% trans 'View' %}">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <a href="{% url 'invoice_update' invoice.pk %}" class="btn btn-outline-secondary btn-sm" title="{% trans 'Edit' %}">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <div class="empty-state-icon mb-3">
+                                <i class="bi bi-inbox"></i>
+                            </div>
+                            <h6 class="fw-medium">{% trans "No invoices yet" %}</h6>
+                            <p class="mb-4">{% trans "Create your first invoice to get started!" %}</p>
+                            <a href="{% url 'invoice_create' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-2"></i> {% trans "Create Invoice" %}
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
