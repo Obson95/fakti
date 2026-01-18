@@ -15,7 +15,7 @@
 <div class="container mt-4">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'invoice_dashboard' %}">{% trans "Dashboard" %}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a></li>
             <li class="breadcrumb-item"><a href="{% url 'item_list' %}">{% trans "Items" %}</a></li>
             {% if item.pk %}
             <li class="breadcrumb-item active">{% trans "Edit" %} {{ item.name }}</li>

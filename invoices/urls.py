@@ -26,6 +26,4 @@ urlpatterns = [
     path('invoices/<int:pk>/pdf/', views.generate_invoice_pdf, name='invoice_pdf'),
     path('invoices/<int:pk>/send/', views.send_invoice_email, name='invoice_send'),
     
-    # Dashboard
-    path('dashboard/', views.invoice_dashboard, name='invoice_dashboard'),
 ]

@@ -7,34 +7,52 @@
   {% csrf_token %}
   <div class="modal-body">
     <div class="mb-3">
-      <label class="form-label">{% trans "To" %}</label>
-      {{ form.to_email|as_widget(attrs={'class':'form-control'}) }}
+      <label class="form-label" for="id_to_email">{% trans "To" %}</label>
+      <input type="email" name="to_email" id="id_to_email" class="form-control" value="{{ form.to_email.value|default:'' }}" required>
+      {% if form.to_email.errors %}
+        <div class="invalid-feedback d-block">{{ form.to_email.errors.0 }}</div>
+      {% endif %}
     </div>
     <div class="mb-3">
-      <label class="form-label">{% trans "CC" %}</label>
-      {{ form.cc|as_widget(attrs={'class':'form-control'}) }}
+      <label class="form-label" for="id_cc">{% trans "CC" %}</label>
+      <input type="text" name="cc" id="id_cc" class="form-control" value="{{ form.cc.value|default:'' }}">
       <div class="form-text">{% trans "Comma or semicolon separated emails" %}</div>
+      {% if form.cc.errors %}
+        <div class="invalid-feedback d-block">{{ form.cc.errors.0 }}</div>
+      {% endif %}
     </div>
     <div class="mb-3">
-      <label class="form-label">{% trans "BCC" %}</label>
-      {{ form.bcc|as_widget(attrs={'class':'form-control'}) }}
+      <label class="form-label" for="id_bcc">{% trans "BCC" %}</label>
+      <input type="text" name="bcc" id="id_bcc" class="form-control" value="{{ form.bcc.value|default:'' }}">
       <div class="form-text">{% trans "Comma or semicolon separated emails" %}</div>
+      {% if form.bcc.errors %}
+        <div class="invalid-feedback d-block">{{ form.bcc.errors.0 }}</div>
+      {% endif %}
     </div>
     <div class="mb-3">
-      <label class="form-label">{% trans "Subject" %}</label>
-      {{ form.subject|as_widget(attrs={'class':'form-control'}) }}
+      <label class="form-label" for="id_subject">{% trans "Subject" %}</label>
+      <input type="text" name="subject" id="id_subject" class="form-control" value="{{ form.subject.value|default:'' }}" required maxlength="200">
+      {% if form.subject.errors %}
+        <div class="invalid-feedback d-block">{{ form.subject.errors.0 }}</div>
+      {% endif %}
     </div>
     <div class="mb-3">
-      <label class="form-label">{% trans "Message" %}</label>
-      {{ form.message|as_widget(attrs={'class':'form-control', 'rows':'6'}) }}
+      <label class="form-label" for="id_message">{% trans "Message" %}</label>
+      <textarea name="message" id="id_message" class="form-control" rows="6" required>{{ form.message.value|default:'' }}</textarea>
+      {% if form.message.errors %}
+        <div class="invalid-feedback d-block">{{ form.message.errors.0 }}</div>
+      {% endif %}
     </div>
     <div class="form-check mb-3">
-      {{ form.attach_pdf|as_widget(attrs={'class':'form-check-input', 'id':'attach_pdf'}) }}
-      <label class="form-check-label" for="attach_pdf">{% trans "Attach PDF" %}</label>
+      <input type="checkbox" name="attach_pdf" id="id_attach_pdf" class="form-check-input" {% if form.attach_pdf.value %}checked{% endif %}>
+      <label class="form-check-label" for="id_attach_pdf">{% trans "Attach PDF" %}</label>
     </div>
     <div class="mb-3">
-      <label class="form-label">{% trans "Reply-To" %}</label>
-      {{ form.reply_to|as_widget(attrs={'class':'form-control'}) }}
+      <label class="form-label" for="id_reply_to">{% trans "Reply-To" %}</label>
+      <input type="email" name="reply_to" id="id_reply_to" class="form-control" value="{{ form.reply_to.value|default:'' }}">
+      {% if form.reply_to.errors %}
+        <div class="invalid-feedback d-block">{{ form.reply_to.errors.0 }}</div>
+      {% endif %}
     </div>
   </div>
   <div class="modal-footer">

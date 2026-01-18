@@ -34,12 +34,12 @@ This document lists all implemented features in the Fakti application. Each feat
 
 ## 3. Client Management
 
-- [ ] 3.1 Create new client
-- [ ] 3.2 View client list
-- [ ] 3.3 View client detail with associated invoices
-- [ ] 3.4 Edit client information
-- [ ] 3.5 Delete client
-- [ ] 3.6 Quick invoice creation from client profile
+- [x] 3.1 Create new client
+- [x] 3.2 View client list
+- [x] 3.3 View client detail with associated invoices
+- [x] 3.4 Edit client information
+- [x] 3.5 Delete client
+- [x] 3.6 Quick invoice creation from client profile
 
 ---
 
