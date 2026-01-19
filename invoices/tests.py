@@ -19,7 +19,7 @@ class DummyHTML:
 			if hasattr(target, 'write'):
 				target.write(b"%PDF-1.4 Dummy")
 			return None
-		# Otherwise return bytes (used by send_invoice_email)
+		# Otherwise return bytes (used by send_invoice_send)
 		return b"%PDF-1.4 Dummy"
 
 
@@ -71,7 +71,7 @@ class InvoiceActionsTests(TestCase):
 
 	@patch('invoices.views.WEASYPRINT_INSTALLED', True)
 	@patch('invoices.views.HTML', DummyHTML)
-	def test_send_invoice_email_with_pdf_attachment(self, *mocks):
+	def test_send_invoice_send_with_pdf_attachment(self, *mocks):
 		url = reverse('invoice_send', args=[self.invoice.pk])
 		# POST with form data to send email
 		data = {
@@ -2112,3 +2112,237 @@ class PDFTemplateTests(TestCase):
         # Check for draft watermark
         self.assertIn('watermark', html)
         self.assertIn('DRAFT', html)
+
+
+# Email Functionality Tests (Section 8)
+
+class EmailFunctionalityTests(TestCase):
+    """Tests for email sending functionality (Features 8.1-8.7)"""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='SecurePass123!',
+            business_name='Test Business Inc.'
+        )
+        self.client.force_login(self.user)
+
+        self.test_client = Client.objects.create(
+            user=self.user,
+            name='Client Company',
+            email='client@example.com'
+        )
+
+        self.invoice = Invoice.objects.create(
+            user=self.user,
+            client=self.test_client,
+            invoice_number='INV-2025-00001',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date() + timezone.timedelta(days=30),
+            status='draft'
+        )
+        InvoiceItem.objects.create(
+            invoice=self.invoice,
+            description='Test Service',
+            quantity=1,
+            unit_price=100,
+            line_total=100
+        )
+        self.invoice.calculate_totals()
+        self.invoice.save()
+
+        self.email_url = reverse('invoice_send', kwargs={'pk': self.invoice.pk})
+
+    def test_email_page_loads(self):
+        """Test that email page loads (Feature 8.1)"""
+        response = self.client.get(self.email_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'invoices/send_invoice_email.html')
+
+    def test_email_requires_login(self):
+        """Test that email functionality requires authentication"""
+        self.client.logout()
+        response = self.client.get(self.email_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('login', response.url)
+
+    def test_email_form_has_all_fields(self):
+        """Test that email form has all required fields (Features 8.2-8.6)"""
+        response = self.client.get(self.email_url)
+        form = response.context['form']
+
+        # Check all fields exist
+        self.assertIn('to_email', form.fields)
+        self.assertIn('cc', form.fields)
+        self.assertIn('bcc', form.fields)
+        self.assertIn('subject', form.fields)
+        self.assertIn('message', form.fields)
+        self.assertIn('attach_pdf', form.fields)
+        self.assertIn('reply_to', form.fields)
+
+    def test_email_form_prefilled_with_defaults(self):
+        """Test that email form is prefilled with sensible defaults"""
+        response = self.client.get(self.email_url)
+        form = response.context['form']
+
+        # Check prefilled values
+        self.assertEqual(form.initial['to_email'], 'client@example.com')
+        self.assertIn('INV-2025-00001', form.initial['subject'])
+        self.assertIn('Client Company', form.initial['message'])
+        self.assertTrue(form.initial['attach_pdf'])
+        self.assertEqual(form.initial['reply_to'], 'test@example.com')
+
+    def test_send_email_success(self):
+        """Test sending email successfully (Feature 8.1)"""
+        from django.core import mail
+
+        data = {
+            'to_email': 'recipient@example.com',
+            'cc': '',
+            'bcc': '',
+            'subject': 'Test Invoice',
+            'message': 'Please find your invoice attached.',
+            'attach_pdf': False,  # Skip PDF to avoid WeasyPrint issues
+            'reply_to': 'test@example.com',
+        }
+        response = self.client.post(self.email_url, data)
+
+        # Should redirect to invoice detail
+        self.assertRedirects(response, reverse('invoice_detail', kwargs={'pk': self.invoice.pk}))
+
+        # Check email was sent
+        self.assertEqual(len(mail.outbox), 1)
+        sent_email = mail.outbox[0]
+        self.assertEqual(sent_email.to, ['recipient@example.com'])
+        self.assertEqual(sent_email.subject, 'Test Invoice')
+        self.assertIn('Please find your invoice attached.', sent_email.body)
+
+    def test_send_email_with_cc_bcc(self):
+        """Test sending email with CC and BCC (Feature 8.2)"""
+        from django.core import mail
+
+        data = {
+            'to_email': 'recipient@example.com',
+            'cc': 'cc1@example.com, cc2@example.com',
+            'bcc': 'bcc@example.com',
+            'subject': 'Test Invoice',
+            'message': 'Test message',
+            'attach_pdf': False,
+            'reply_to': '',
+        }
+        response = self.client.post(self.email_url, data)
+
+        self.assertEqual(len(mail.outbox), 1)
+        sent_email = mail.outbox[0]
+        self.assertEqual(sent_email.cc, ['cc1@example.com', 'cc2@example.com'])
+        self.assertEqual(sent_email.bcc, ['bcc@example.com'])
+
+    def test_cc_bcc_validation(self):
+        """Test that CC/BCC fields validate email addresses (Feature 8.2)"""
+        data = {
+            'to_email': 'recipient@example.com',
+            'cc': 'invalid-email',
+            'bcc': '',
+            'subject': 'Test',
+            'message': 'Test',
+            'attach_pdf': False,
+        }
+        response = self.client.post(self.email_url, data)
+
+        # Should re-render form with errors
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('form', response.context)
+        self.assertTrue(response.context['form'].errors)
+
+    def test_send_email_with_reply_to(self):
+        """Test sending email with Reply-To header (Feature 8.6)"""
+        from django.core import mail
+
+        data = {
+            'to_email': 'recipient@example.com',
+            'cc': '',
+            'bcc': '',
+            'subject': 'Test Invoice',
+            'message': 'Test message',
+            'attach_pdf': False,
+            'reply_to': 'reply@example.com',
+        }
+        response = self.client.post(self.email_url, data)
+
+        self.assertEqual(len(mail.outbox), 1)
+        sent_email = mail.outbox[0]
+        self.assertEqual(sent_email.reply_to, ['reply@example.com'])
+
+    def test_draft_status_changes_to_sent(self):
+        """Test that draft status changes to sent after email (Feature 8.7)"""
+        from django.core import mail
+
+        self.assertEqual(self.invoice.status, 'draft')
+
+        data = {
+            'to_email': 'recipient@example.com',
+            'cc': '',
+            'bcc': '',
+            'subject': 'Test Invoice',
+            'message': 'Test message',
+            'attach_pdf': False,
+            'reply_to': '',
+        }
+        response = self.client.post(self.email_url, data)
+
+        self.invoice.refresh_from_db()
+        self.assertEqual(self.invoice.status, 'sent')
+
+    def test_non_draft_status_unchanged(self):
+        """Test that non-draft status is not changed after email"""
+        from django.core import mail
+
+        self.invoice.status = 'paid'
+        self.invoice.save()
+
+        data = {
+            'to_email': 'recipient@example.com',
+            'cc': '',
+            'bcc': '',
+            'subject': 'Test Invoice',
+            'message': 'Test message',
+            'attach_pdf': False,
+            'reply_to': '',
+        }
+        response = self.client.post(self.email_url, data)
+
+        self.invoice.refresh_from_db()
+        self.assertEqual(self.invoice.status, 'paid')  # Unchanged
+
+    def test_cannot_email_other_user_invoice(self):
+        """Test that user cannot email other user's invoice"""
+        other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='SecurePass123!'
+        )
+        other_client = Client.objects.create(
+            user=other_user,
+            name='Other Client',
+            email='other@example.com'
+        )
+        other_invoice = Invoice.objects.create(
+            user=other_user,
+            client=other_client,
+            invoice_number='INV-2025-99999',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date(),
+            status='draft'
+        )
+
+        url = reverse('invoice_send', kwargs={'pk': other_invoice.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_email_link_in_detail_page(self):
+        """Test that email link is in invoice detail page"""
+        url = reverse('invoice_detail', kwargs={'pk': self.invoice.pk})
+        response = self.client.get(url)
+        email_url = reverse('invoice_send', kwargs={'pk': self.invoice.pk})
+        self.assertContains(response, email_url)
