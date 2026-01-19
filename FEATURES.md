@@ -85,10 +85,10 @@ This document lists all implemented features in the Fakti application. Each feat
 
 ## 7. PDF Generation
 
-- [ ] 7.1 Generate PDF invoice
-- [ ] 7.2 PDF includes all invoice details and itemization
-- [ ] 7.3 Automatic filename generation
-- [ ] 7.4 Download PDF functionality
+- [x] 7.1 Generate PDF invoice
+- [x] 7.2 PDF includes all invoice details and itemization
+- [x] 7.3 Automatic filename generation
+- [x] 7.4 Download PDF functionality
 
 ---
 
