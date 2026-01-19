@@ -94,13 +94,13 @@ This document lists all implemented features in the Fakti application. Each feat
 
 ## 8. Email Functionality
 
-- [ ] 8.1 Send invoice via email
-- [ ] 8.2 To/CC/BCC fields with validation
-- [ ] 8.3 Customizable subject line
-- [ ] 8.4 Customizable message body
-- [ ] 8.5 Optional PDF attachment
-- [ ] 8.6 Reply-To header support
-- [ ] 8.7 Auto-change draft status to sent after email
+- [x] 8.1 Send invoice via email
+- [x] 8.2 To/CC/BCC fields with validation
+- [x] 8.3 Customizable subject line
+- [x] 8.4 Customizable message body
+- [x] 8.5 Optional PDF attachment
+- [x] 8.6 Reply-To header support
+- [x] 8.7 Auto-change draft status to sent after email
 
 ---
 
