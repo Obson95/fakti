@@ -1619,3 +1619,183 @@ class InvoiceNotesTests(TestCase):
         url = reverse('invoice_detail', kwargs={'pk': invoice.pk})
         response = self.client.get(url)
         self.assertContains(response, 'Test payment terms')
+
+
+# Invoice List Features Tests (Section 6)
+
+class InvoiceListFeaturesTests(TestCase):
+    """Tests for invoice list UI features (Features 6.1-6.6)"""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='SecurePass123!'
+        )
+        self.client.force_login(self.user)
+        self.list_url = reverse('invoice_list')
+
+        self.test_client = Client.objects.create(
+            user=self.user,
+            name='Test Client',
+            email='client@example.com'
+        )
+
+        # Create invoices with different statuses and line items
+        self.draft_invoice = Invoice.objects.create(
+            user=self.user,
+            client=self.test_client,
+            invoice_number='INV-2025-00001',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date(),
+            status='draft'
+        )
+        InvoiceItem.objects.create(
+            invoice=self.draft_invoice,
+            description='Draft Service',
+            quantity=1,
+            unit_price=100,
+            line_total=100
+        )
+        self.draft_invoice.calculate_totals()
+        self.draft_invoice.save()
+
+        self.sent_invoice = Invoice.objects.create(
+            user=self.user,
+            client=self.test_client,
+            invoice_number='INV-2025-00002',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date(),
+            status='sent'
+        )
+        InvoiceItem.objects.create(
+            invoice=self.sent_invoice,
+            description='Sent Service',
+            quantity=1,
+            unit_price=200,
+            line_total=200
+        )
+        self.sent_invoice.calculate_totals()
+        self.sent_invoice.save()
+
+        self.paid_invoice = Invoice.objects.create(
+            user=self.user,
+            client=self.test_client,
+            invoice_number='INV-2025-00003',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date(),
+            status='paid'
+        )
+        InvoiceItem.objects.create(
+            invoice=self.paid_invoice,
+            description='Paid Service',
+            quantity=1,
+            unit_price=300,
+            line_total=300
+        )
+        self.paid_invoice.calculate_totals()
+        self.paid_invoice.save()
+
+        self.overdue_invoice = Invoice.objects.create(
+            user=self.user,
+            client=self.test_client,
+            invoice_number='INV-2025-00004',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date(),
+            status='overdue'
+        )
+        InvoiceItem.objects.create(
+            invoice=self.overdue_invoice,
+            description='Overdue Service',
+            quantity=1,
+            unit_price=400,
+            line_total=400
+        )
+        self.overdue_invoice.calculate_totals()
+        self.overdue_invoice.save()
+
+    def test_status_filter_buttons_displayed(self):
+        """Test that status filter buttons are displayed (Feature 6.1)"""
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, 200)
+        # Check for filter buttons
+        self.assertContains(response, '?status=draft')
+        self.assertContains(response, '?status=sent')
+        self.assertContains(response, '?status=paid')
+        self.assertContains(response, '?status=overdue')
+
+    def test_status_filter_buttons_work(self):
+        """Test that status filter buttons filter correctly (Feature 6.1)"""
+        # Test draft filter
+        response = self.client.get(self.list_url + '?status=draft')
+        self.assertEqual(len(response.context['invoices']), 1)
+        self.assertEqual(response.context['invoices'][0].status, 'draft')
+
+        # Test paid filter
+        response = self.client.get(self.list_url + '?status=paid')
+        self.assertEqual(len(response.context['invoices']), 1)
+        self.assertEqual(response.context['invoices'][0].status, 'paid')
+
+    def test_status_badges_displayed(self):
+        """Test that color-coded status badges are displayed (Feature 6.2)"""
+        response = self.client.get(self.list_url)
+        # Check for badge classes
+        self.assertContains(response, 'bg-secondary-subtle')  # Draft badge
+        self.assertContains(response, 'bg-info-subtle')  # Sent badge
+        self.assertContains(response, 'bg-success-subtle')  # Paid badge
+        self.assertContains(response, 'bg-danger-subtle')  # Overdue badge
+
+    def test_invoice_counts_by_status_displayed(self):
+        """Test that invoice counts by status are displayed (Feature 6.3)"""
+        response = self.client.get(self.list_url)
+        # Check context has counts
+        self.assertEqual(response.context['total_invoices'], 4)
+        self.assertEqual(response.context['draft_count'], 1)
+        self.assertEqual(response.context['sent_count'], 1)
+        self.assertEqual(response.context['paid_count'], 1)
+        self.assertEqual(response.context['overdue_count'], 1)
+
+    def test_total_amounts_displayed(self):
+        """Test that total amounts are displayed (Feature 6.4)"""
+        response = self.client.get(self.list_url)
+        # Check context has total amounts
+        self.assertEqual(response.context['total_amount'], 1000)  # 100+200+300+400
+        self.assertEqual(response.context['total_paid'], 300)  # Only paid invoice
+        self.assertEqual(response.context['total_outstanding'], 700)  # 100+200+400 (unpaid)
+
+        # Check amounts are displayed in template
+        self.assertContains(response, 'Total Amount')
+        self.assertContains(response, 'Outstanding')
+
+    def test_desktop_table_view_present(self):
+        """Test that desktop table view is present (Feature 6.5)"""
+        response = self.client.get(self.list_url)
+        # Check for desktop table with responsive class
+        self.assertContains(response, 'd-none d-lg-block')  # Desktop only visibility
+        self.assertContains(response, '<table')
+        self.assertContains(response, '<thead')
+        self.assertContains(response, '<tbody')
+
+    def test_mobile_card_view_present(self):
+        """Test that mobile card view is present (Feature 6.6)"""
+        response = self.client.get(self.list_url)
+        # Check for mobile card view
+        self.assertContains(response, 'd-lg-none')  # Mobile only visibility
+        self.assertContains(response, 'invoice-card')  # Card class for mobile
+
+    def test_invoice_list_shows_all_data(self):
+        """Test that invoice list shows all required data"""
+        response = self.client.get(self.list_url)
+        # Check invoice data is displayed
+        self.assertContains(response, 'INV-2025-00001')
+        self.assertContains(response, 'INV-2025-00002')
+        self.assertContains(response, 'Test Client')
+
+    def test_invoice_list_has_action_buttons(self):
+        """Test that invoice list has action buttons"""
+        response = self.client.get(self.list_url)
+        # Check for action buttons by looking for URL patterns
+        self.assertContains(response, f'/invoicing/invoices/{self.draft_invoice.pk}/')  # View link
+        self.assertContains(response, f'/invoicing/invoices/{self.draft_invoice.pk}/edit/')  # Edit link
+        self.assertContains(response, f'/invoicing/invoices/{self.draft_invoice.pk}/pdf/')  # PDF link
+        self.assertContains(response, f'/invoicing/invoices/{self.draft_invoice.pk}/delete/')  # Delete link

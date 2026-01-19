@@ -74,12 +74,12 @@ This document lists all implemented features in the Fakti application. Each feat
 
 ## 6. Invoice List Features
 
-- [ ] 6.1 Status filter buttons
-- [ ] 6.2 Status badges (color-coded)
-- [ ] 6.3 Invoice counts by status
-- [ ] 6.4 Total amounts display (all, paid, outstanding)
-- [ ] 6.5 Responsive table view (desktop)
-- [ ] 6.6 Responsive card view (mobile)
+- [x] 6.1 Status filter buttons
+- [x] 6.2 Status badges (color-coded)
+- [x] 6.3 Invoice counts by status
+- [x] 6.4 Total amounts display (all, paid, outstanding)
+- [x] 6.5 Responsive table view (desktop)
+- [x] 6.6 Responsive card view (mobile)
 
 ---
 
