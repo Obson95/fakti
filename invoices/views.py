@@ -82,13 +82,13 @@ class ClientDeleteView(LoginRequiredMixin, DeleteView):
     model = Client
     template_name = 'invoices/client_confirm_delete.html'
     success_url = reverse_lazy('client_list')
-    
+
     def get_queryset(self):
         return Client.objects.filter(user=self.request.user)
-    
-    def delete(self, request, *args, **kwargs):
-        messages.success(request, _('Client deleted successfully.'))
-        return super().delete(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        messages.success(self.request, _('Client deleted successfully.'))
+        return super().form_valid(form)
 
 
 # Invoice Views
@@ -418,13 +418,13 @@ class ItemDeleteView(LoginRequiredMixin, DeleteView):
     model = Item
     template_name = 'invoices/item_confirm_delete.html'
     success_url = reverse_lazy('item_list')
-    
+
     def get_queryset(self):
         return Item.objects.filter(user=self.request.user)
-    
-    def delete(self, request, *args, **kwargs):
-        messages.success(request, _('Item deleted successfully.'))
-        return super().delete(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        messages.success(self.request, _('Item deleted successfully.'))
+        return super().form_valid(form)
 
 
 @login_required

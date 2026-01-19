@@ -45,12 +45,12 @@ This document lists all implemented features in the Fakti application. Each feat
 
 ## 4. Item Management (Reusable Catalog)
 
-- [ ] 4.1 Create new item
-- [ ] 4.2 View item list
-- [ ] 4.3 Edit item
-- [ ] 4.4 Delete item
-- [ ] 4.5 Item selection in invoice forms
-- [ ] 4.6 Item detail API endpoint (JSON)
+- [x] 4.1 Create new item
+- [x] 4.2 View item list
+- [x] 4.3 Edit item
+- [x] 4.4 Delete item
+- [x] 4.5 Item selection in invoice forms
+- [x] 4.6 Item detail API endpoint (JSON)
 
 ---
 

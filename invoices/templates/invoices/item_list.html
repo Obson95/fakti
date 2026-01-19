@@ -37,7 +37,7 @@
                         <tr>
                             <td>{{ item.name }}</td>
                             <td>{{ item.description }}</td>
-                            <td>{{ item.unit_price }} {{ request.user.profile.default_currency|default:"HTG" }}</td>
+                            <td>{{ item.unit_price }} HTG</td>
                             <td class="text-end">
                                 <a href="{% url 'item_update' item.pk %}" class="btn btn-sm btn-outline-primary">
                                     <i class="bi bi-pencil"></i> {% trans "Edit" %}

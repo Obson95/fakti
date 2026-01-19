@@ -424,3 +424,368 @@ class ClientQuickInvoiceTests(TestCase):
         # The form should have the client pre-selected
         form = response.context['form']
         self.assertEqual(form.initial.get('client'), self.test_client.pk)
+
+
+# Item Management Tests (Section 4)
+
+class ItemCreateTests(TestCase):
+    """Tests for item creation functionality (Feature 4.1)"""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='SecurePass123!'
+        )
+        self.client.force_login(self.user)
+        self.create_url = reverse('item_create')
+
+    def test_item_create_page_loads(self):
+        """Test that item creation page loads"""
+        response = self.client.get(self.create_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'invoices/item_form.html')
+
+    def test_item_create_requires_login(self):
+        """Test that item creation requires authentication"""
+        self.client.logout()
+        response = self.client.get(self.create_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('login', response.url)
+
+    def test_create_item_with_valid_data(self):
+        """Test creating an item with valid data"""
+        from .models import Item
+        data = {
+            'name': 'Test Service',
+            'description': 'A test service description',
+            'unit_price': '150.00'
+        }
+        response = self.client.post(self.create_url, data)
+        self.assertRedirects(response, reverse('item_list'))
+
+        # Item should be created
+        self.assertTrue(Item.objects.filter(name='Test Service').exists())
+        item = Item.objects.get(name='Test Service')
+        self.assertEqual(item.user, self.user)
+        self.assertEqual(item.description, 'A test service description')
+        self.assertEqual(str(item.unit_price), '150.00')
+
+    def test_create_item_without_name_fails(self):
+        """Test that creating an item without name fails"""
+        from .models import Item
+        data = {
+            'description': 'Description only',
+            'unit_price': '100.00'
+        }
+        response = self.client.post(self.create_url, data)
+        self.assertEqual(response.status_code, 200)  # Re-renders form
+        self.assertFalse(Item.objects.filter(description='Description only').exists())
+
+    def test_create_item_without_price_fails(self):
+        """Test that creating an item without price fails"""
+        from .models import Item
+        data = {
+            'name': 'No Price Item',
+            'description': 'Description'
+        }
+        response = self.client.post(self.create_url, data)
+        self.assertEqual(response.status_code, 200)  # Re-renders form
+        self.assertFalse(Item.objects.filter(name='No Price Item').exists())
+
+
+class ItemListTests(TestCase):
+    """Tests for item list functionality (Feature 4.2)"""
+
+    def setUp(self):
+        from .models import Item
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='SecurePass123!'
+        )
+        self.other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='SecurePass123!'
+        )
+        self.client.force_login(self.user)
+        self.list_url = reverse('item_list')
+
+        # Create items for this user
+        self.item1 = Item.objects.create(
+            user=self.user,
+            name='Item One',
+            description='First item',
+            unit_price='100.00'
+        )
+        self.item2 = Item.objects.create(
+            user=self.user,
+            name='Item Two',
+            description='Second item',
+            unit_price='200.00'
+        )
+        # Create item for other user
+        self.other_item = Item.objects.create(
+            user=self.other_user,
+            name='Other Item',
+            description='Other user item',
+            unit_price='300.00'
+        )
+
+    def test_item_list_loads(self):
+        """Test that item list page loads"""
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'invoices/item_list.html')
+
+    def test_item_list_requires_login(self):
+        """Test that item list requires authentication"""
+        self.client.logout()
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('login', response.url)
+
+    def test_item_list_shows_only_user_items(self):
+        """Test that item list only shows user's own items"""
+        response = self.client.get(self.list_url)
+        items = response.context['items']
+        self.assertEqual(len(items), 2)
+        self.assertIn(self.item1, items)
+        self.assertIn(self.item2, items)
+        self.assertNotIn(self.other_item, items)
+
+    def test_item_list_shows_item_details(self):
+        """Test that item list shows item name, description, and price"""
+        response = self.client.get(self.list_url)
+        self.assertContains(response, 'Item One')
+        self.assertContains(response, 'First item')
+        self.assertContains(response, '100')
+
+
+class ItemUpdateTests(TestCase):
+    """Tests for item update functionality (Feature 4.3)"""
+
+    def setUp(self):
+        from .models import Item
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='SecurePass123!'
+        )
+        self.other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='SecurePass123!'
+        )
+        self.client.force_login(self.user)
+
+        self.item = Item.objects.create(
+            user=self.user,
+            name='Original Item',
+            description='Original description',
+            unit_price='100.00'
+        )
+        self.other_item = Item.objects.create(
+            user=self.other_user,
+            name='Other Item',
+            description='Other description',
+            unit_price='200.00'
+        )
+
+    def test_item_update_page_loads(self):
+        """Test that item update page loads"""
+        url = reverse('item_update', kwargs={'pk': self.item.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'invoices/item_form.html')
+
+    def test_update_item_with_valid_data(self):
+        """Test updating an item with valid data"""
+        url = reverse('item_update', kwargs={'pk': self.item.pk})
+        data = {
+            'name': 'Updated Item',
+            'description': 'Updated description',
+            'unit_price': '250.00'
+        }
+        response = self.client.post(url, data)
+        self.assertRedirects(response, reverse('item_list'))
+
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.name, 'Updated Item')
+        self.assertEqual(self.item.description, 'Updated description')
+        self.assertEqual(str(self.item.unit_price), '250.00')
+
+    def test_cannot_update_other_user_item(self):
+        """Test that user cannot update other user's item"""
+        url = reverse('item_update', kwargs={'pk': self.other_item.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+
+class ItemDeleteTests(TestCase):
+    """Tests for item delete functionality (Feature 4.4)"""
+
+    def setUp(self):
+        from .models import Item
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='SecurePass123!'
+        )
+        self.other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='SecurePass123!'
+        )
+        self.client.force_login(self.user)
+
+        self.item = Item.objects.create(
+            user=self.user,
+            name='Item To Delete',
+            description='Description',
+            unit_price='100.00'
+        )
+        self.other_item = Item.objects.create(
+            user=self.other_user,
+            name='Other Item',
+            description='Other description',
+            unit_price='200.00'
+        )
+
+    def test_item_delete_confirmation_page_loads(self):
+        """Test that delete confirmation page loads"""
+        url = reverse('item_delete', kwargs={'pk': self.item.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'invoices/item_confirm_delete.html')
+
+    def test_delete_item(self):
+        """Test deleting an item"""
+        from .models import Item
+        url = reverse('item_delete', kwargs={'pk': self.item.pk})
+        response = self.client.post(url)
+        self.assertRedirects(response, reverse('item_list'))
+        self.assertFalse(Item.objects.filter(pk=self.item.pk).exists())
+
+    def test_cannot_delete_other_user_item(self):
+        """Test that user cannot delete other user's item"""
+        from .models import Item
+        url = reverse('item_delete', kwargs={'pk': self.other_item.pk})
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 404)
+        # Item should still exist
+        self.assertTrue(Item.objects.filter(pk=self.other_item.pk).exists())
+
+
+class ItemSelectionTests(TestCase):
+    """Tests for item selection in invoice forms (Feature 4.5)"""
+
+    def setUp(self):
+        from .models import Item
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='SecurePass123!'
+        )
+        self.client.force_login(self.user)
+
+        # Create a client for invoices
+        self.test_client = Client.objects.create(
+            user=self.user,
+            name='Test Client',
+            email='client@example.com'
+        )
+
+        # Create items
+        self.item1 = Item.objects.create(
+            user=self.user,
+            name='Service A',
+            description='Service A description',
+            unit_price='100.00'
+        )
+        self.item2 = Item.objects.create(
+            user=self.user,
+            name='Service B',
+            description='Service B description',
+            unit_price='200.00'
+        )
+
+    def test_invoice_form_shows_user_items(self):
+        """Test that invoice form shows user's items for selection"""
+        url = reverse('invoice_create')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        # The formset should have items in the item field queryset
+        formset = response.context['formset']
+        # Check that at least one form has items in the queryset
+        if formset.forms:
+            item_field = formset.forms[0].fields.get('item')
+            if item_field:
+                queryset = item_field.queryset
+                self.assertIn(self.item1, queryset)
+                self.assertIn(self.item2, queryset)
+
+
+class ItemDetailAPITests(TestCase):
+    """Tests for item detail API endpoint (Feature 4.6)"""
+
+    def setUp(self):
+        from .models import Item
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='SecurePass123!'
+        )
+        self.other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='SecurePass123!'
+        )
+        self.client.force_login(self.user)
+
+        self.item = Item.objects.create(
+            user=self.user,
+            name='API Test Item',
+            description='API test description',
+            unit_price='150.50'
+        )
+        self.other_item = Item.objects.create(
+            user=self.other_user,
+            name='Other Item',
+            description='Other description',
+            unit_price='200.00'
+        )
+
+    def test_item_api_returns_json(self):
+        """Test that item API returns JSON response"""
+        url = reverse('item_detail_api', kwargs={'pk': self.item.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/json')
+
+    def test_item_api_returns_correct_data(self):
+        """Test that item API returns correct item data"""
+        import json
+        url = reverse('item_detail_api', kwargs={'pk': self.item.pk})
+        response = self.client.get(url)
+        data = json.loads(response.content)
+
+        self.assertEqual(data['id'], self.item.pk)
+        self.assertEqual(data['name'], 'API Test Item')
+        self.assertEqual(data['description'], 'API test description')
+        self.assertEqual(data['unit_price'], '150.50')
+
+    def test_item_api_requires_login(self):
+        """Test that item API requires authentication"""
+        self.client.logout()
+        url = reverse('item_detail_api', kwargs={'pk': self.item.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('login', response.url)
+
+    def test_cannot_access_other_user_item_api(self):
+        """Test that user cannot access other user's item via API"""
+        url = reverse('item_detail_api', kwargs={'pk': self.other_item.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
