@@ -170,23 +170,25 @@ class Invoice(models.Model):
     
     def calculate_totals(self):
         """Calculate invoice subtotal, tax, discount, and total"""
+        from decimal import Decimal
+
         # Calculate subtotal from line items
         if self.pk:  # Only calculate if invoice is already saved
             line_items = self.line_items.all()
             self.subtotal = sum(item.line_total for item in line_items)
-        
+
         # Calculate tax amount
         if self.tax_percent:
-            self.tax_amount = self.subtotal * (self.tax_percent / 100)
+            self.tax_amount = self.subtotal * (self.tax_percent / Decimal('100'))
         else:
-            self.tax_amount = 0
-            
+            self.tax_amount = Decimal('0')
+
         # Calculate discount amount
         if self.discount_percent:
-            self.discount_amount = self.subtotal * (self.discount_percent / 100)
+            self.discount_amount = self.subtotal * (self.discount_percent / Decimal('100'))
         else:
-            self.discount_amount = 0
-            
+            self.discount_amount = Decimal('0')
+
         # Calculate final total
         self.total = self.subtotal + self.tax_amount - self.discount_amount
         

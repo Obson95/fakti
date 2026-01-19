@@ -30,7 +30,7 @@
                     <strong>{% trans "Client" %}:</strong> {{ invoice.client.name }}<br>
                     <strong>{% trans "Date" %}:</strong> {{ invoice.issue_date }}<br>
                     <strong>{% trans "Due Date" %}:</strong> {{ invoice.due_date }}<br>
-                    <strong>{% trans "Total" %}:</strong> {{ invoice.total|floatformat:2 }} HTG
+                    <strong>{% trans "Total" %}:</strong> {{ invoice.total|floatformat:2 }} {{ invoice.currency }}
                 </p>
             </div>
 

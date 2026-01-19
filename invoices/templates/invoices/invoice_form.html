@@ -142,9 +142,9 @@
                             </div>
                         </div>
                         
-                        <!-- Status & Tax Rate -->
+                        <!-- Status & Tax/Discount -->
                         <div class="row mb-3">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label for="{{ form.status.id_for_label }}" class="form-label">
                                     <i class="bi bi-flag-fill text-primary me-1"></i>{% trans "Status" %}
                                 </label>
@@ -155,15 +155,27 @@
                                 </div>
                                 {% endif %}
                             </div>
-                            
-                            <div class="col-md-6">
-                                <label for="{{ form.tax_rate.id_for_label }}" class="form-label">
+
+                            <div class="col-md-4">
+                                <label for="{{ form.tax_percent.id_for_label }}" class="form-label">
                                     <i class="bi bi-percent text-primary me-1"></i>{% trans "Tax Rate" %} (%)
                                 </label>
-                                {{ form.tax_rate }}
-                                {% if form.tax_rate.errors %}
+                                {{ form.tax_percent }}
+                                {% if form.tax_percent.errors %}
                                 <div class="invalid-feedback d-block">
-                                    {{ form.tax_rate.errors }}
+                                    {{ form.tax_percent.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="{{ form.discount_percent.id_for_label }}" class="form-label">
+                                    <i class="bi bi-tag text-primary me-1"></i>{% trans "Discount" %} (%)
+                                </label>
+                                {{ form.discount_percent }}
+                                {% if form.discount_percent.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.discount_percent.errors }}
                                 </div>
                                 {% endif %}
                             </div>
@@ -271,16 +283,20 @@
                                     <div class="card-body p-3">
                                         <div class="d-flex justify-content-between align-items-center mb-2">
                                             <span class="text-muted small fw-semibold text-uppercase">{% trans "Subtotal" %}</span>
-                                            <span class="subtotal-amount fw-semibold text-dark">$0.00</span>
+                                            <span class="subtotal-amount fw-semibold text-dark">0.00</span>
                                         </div>
                                         <div class="d-flex justify-content-between align-items-center mb-2">
                                             <span class="text-muted small fw-semibold text-uppercase">{% trans "Tax" %}</span>
-                                            <span class="tax-amount fw-semibold text-dark">$0.00</span>
+                                            <span class="tax-amount fw-semibold text-dark">0.00</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="text-muted small fw-semibold text-uppercase">{% trans "Discount" %}</span>
+                                            <span class="discount-amount fw-semibold text-success">-0.00</span>
                                         </div>
                                         <hr class="my-2">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <span class="text-dark small fw-bold text-uppercase">{% trans "Total" %}</span>
-                                            <span class="total-amount h5 fw-bold text-primary mb-0">$0.00</span>
+                                            <span class="total-amount h5 fw-bold text-primary mb-0">0.00</span>
                                         </div>
                                     </div>
                                 </div>
@@ -567,14 +583,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function calculateTotals() {
         let subtotal = 0;
         const rows = tbody.querySelectorAll('.formset-row');
-        
+
         rows.forEach(row => {
             const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
             if (!deleteCheckbox || !deleteCheckbox.checked) {
                 if (row.style.display !== 'none') {
                     const quantityInput = row.querySelector('input[name$="-quantity"]');
                     const priceInput = row.querySelector('input[name$="-unit_price"]');
-                    
+
                     if (quantityInput && priceInput) {
                         const quantity = parseFloat(quantityInput.value) || 0;
                         const price = parseFloat(priceInput.value) || 0;
@@ -583,31 +599,44 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-        
+
         // Update subtotal
         const subtotalEl = document.querySelector('.subtotal-amount');
         if (subtotalEl) {
-            subtotalEl.textContent = '$' + subtotal.toFixed(2);
+            subtotalEl.textContent = subtotal.toFixed(2);
         }
-        
+
         // Calculate tax
-        const taxRateInput = document.getElementById('id_tax_rate');
+        const taxPercentInput = document.getElementById('id_tax_percent');
         let tax = 0;
-        if (taxRateInput) {
-            const taxRate = parseFloat(taxRateInput.value) || 0;
-            tax = subtotal * (taxRate / 100);
+        if (taxPercentInput) {
+            const taxPercent = parseFloat(taxPercentInput.value) || 0;
+            tax = subtotal * (taxPercent / 100);
         }
-        
+
         const taxEl = document.querySelector('.tax-amount');
         if (taxEl) {
-            taxEl.textContent = '$' + tax.toFixed(2);
+            taxEl.textContent = tax.toFixed(2);
         }
-        
+
+        // Calculate discount
+        const discountPercentInput = document.getElementById('id_discount_percent');
+        let discount = 0;
+        if (discountPercentInput) {
+            const discountPercent = parseFloat(discountPercentInput.value) || 0;
+            discount = subtotal * (discountPercent / 100);
+        }
+
+        const discountEl = document.querySelector('.discount-amount');
+        if (discountEl) {
+            discountEl.textContent = '-' + discount.toFixed(2);
+        }
+
         // Calculate total
-        const total = subtotal + tax;
+        const total = subtotal + tax - discount;
         const totalEl = document.querySelector('.total-amount');
         if (totalEl) {
-            totalEl.textContent = '$' + total.toFixed(2);
+            totalEl.textContent = total.toFixed(2);
         }
     }
     
@@ -645,11 +674,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initial calculation
     calculateTotals();
-    
-    // Tax rate change listener
-    const taxRateInput = document.getElementById('id_tax_rate');
-    if (taxRateInput) {
-        taxRateInput.addEventListener('input', calculateTotals);
+
+    // Tax percent change listener
+    const taxPercentInput = document.getElementById('id_tax_percent');
+    if (taxPercentInput) {
+        taxPercentInput.addEventListener('input', calculateTotals);
+    }
+
+    // Discount percent change listener
+    const discountPercentInput = document.getElementById('id_discount_percent');
+    if (discountPercentInput) {
+        discountPercentInput.addEventListener('input', calculateTotals);
     }
     
     // Date pickers - set today as default
