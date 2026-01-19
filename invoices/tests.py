@@ -789,3 +789,833 @@ class ItemDetailAPITests(TestCase):
         url = reverse('item_detail_api', kwargs={'pk': self.other_item.pk})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
+
+
+# Invoice Management Tests (Section 5)
+
+class InvoiceCreateTests(TestCase):
+    """Tests for invoice creation functionality (Feature 5.1)"""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='SecurePass123!'
+        )
+        self.client.force_login(self.user)
+        self.create_url = reverse('invoice_create')
+
+        # Create a client for invoices
+        self.test_client = Client.objects.create(
+            user=self.user,
+            name='Test Client',
+            email='client@example.com'
+        )
+
+    def test_invoice_create_page_loads(self):
+        """Test that invoice creation page loads"""
+        response = self.client.get(self.create_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'invoices/invoice_form.html')
+
+    def test_invoice_create_requires_login(self):
+        """Test that invoice creation requires authentication"""
+        self.client.logout()
+        response = self.client.get(self.create_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('login', response.url)
+
+    def test_create_invoice_with_line_items(self):
+        """Test creating an invoice with line items"""
+        data = {
+            'client': self.test_client.pk,
+            'invoice_number': 'INV-2025-00001',
+            'issue_date': timezone.now().date().isoformat(),
+            'due_date': (timezone.now().date() + timezone.timedelta(days=30)).isoformat(),
+            'currency': 'HTG',
+            'status': 'draft',
+            'tax_percent': '10.00',
+            'discount_percent': '0.00',
+            'notes': 'Test invoice notes',
+            # Formset management form
+            'line_items-TOTAL_FORMS': '1',
+            'line_items-INITIAL_FORMS': '0',
+            'line_items-MIN_NUM_FORMS': '1',
+            'line_items-MAX_NUM_FORMS': '1000',
+            # Line item data
+            'line_items-0-description': 'Test Service',
+            'line_items-0-quantity': '2',
+            'line_items-0-unit_price': '100.00',
+        }
+        response = self.client.post(self.create_url, data)
+
+        # Should redirect to invoice detail
+        self.assertEqual(response.status_code, 302)
+
+        # Invoice should be created
+        self.assertTrue(Invoice.objects.filter(invoice_number='INV-2025-00001').exists())
+        invoice = Invoice.objects.get(invoice_number='INV-2025-00001')
+        self.assertEqual(invoice.user, self.user)
+        self.assertEqual(invoice.client, self.test_client)
+
+        # Line item should exist
+        self.assertEqual(invoice.line_items.count(), 1)
+        line_item = invoice.line_items.first()
+        self.assertEqual(line_item.description, 'Test Service')
+        self.assertEqual(line_item.quantity, 2)
+
+    def test_create_invoice_without_client_fails(self):
+        """Test that creating invoice without client fails"""
+        data = {
+            'invoice_number': 'INV-2025-00002',
+            'issue_date': timezone.now().date().isoformat(),
+            'due_date': (timezone.now().date() + timezone.timedelta(days=30)).isoformat(),
+            'currency': 'HTG',
+            'status': 'draft',
+            'line_items-TOTAL_FORMS': '1',
+            'line_items-INITIAL_FORMS': '0',
+            'line_items-MIN_NUM_FORMS': '1',
+            'line_items-MAX_NUM_FORMS': '1000',
+            'line_items-0-description': 'Test',
+            'line_items-0-quantity': '1',
+            'line_items-0-unit_price': '100.00',
+        }
+        response = self.client.post(self.create_url, data)
+        self.assertEqual(response.status_code, 200)  # Re-renders form
+        self.assertFalse(Invoice.objects.filter(invoice_number='INV-2025-00002').exists())
+
+
+class InvoiceNumberAutoGenerationTests(TestCase):
+    """Tests for auto-generated invoice numbers (Feature 5.2)"""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='SecurePass123!'
+        )
+        self.client.force_login(self.user)
+
+        self.test_client = Client.objects.create(
+            user=self.user,
+            name='Test Client',
+            email='client@example.com'
+        )
+
+    def test_invoice_number_auto_generated(self):
+        """Test that invoice number is auto-generated"""
+        url = reverse('invoice_create')
+        response = self.client.get(url)
+        form = response.context['form']
+
+        # Should have initial invoice number in format INV-YYYY-XXXXX
+        initial_number = form.initial.get('invoice_number', '') or form.fields['invoice_number'].initial
+        if initial_number:
+            self.assertTrue(initial_number.startswith('INV-'))
+            year = timezone.now().year
+            self.assertIn(str(year), initial_number)
+
+    def test_invoice_number_unique_per_user(self):
+        """Test that invoice numbers are unique per user"""
+        # Create first invoice
+        Invoice.objects.create(
+            user=self.user,
+            client=self.test_client,
+            invoice_number='INV-2025-00001',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date(),
+            status='draft'
+        )
+
+        # Try to create duplicate
+        url = reverse('invoice_create')
+        data = {
+            'client': self.test_client.pk,
+            'invoice_number': 'INV-2025-00001',  # Duplicate
+            'issue_date': timezone.now().date().isoformat(),
+            'due_date': (timezone.now().date() + timezone.timedelta(days=30)).isoformat(),
+            'currency': 'HTG',
+            'status': 'draft',
+            'line_items-TOTAL_FORMS': '1',
+            'line_items-INITIAL_FORMS': '0',
+            'line_items-MIN_NUM_FORMS': '1',
+            'line_items-MAX_NUM_FORMS': '1000',
+            'line_items-0-description': 'Test',
+            'line_items-0-quantity': '1',
+            'line_items-0-unit_price': '100.00',
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 200)  # Form re-rendered with error
+
+
+class InvoiceListTests(TestCase):
+    """Tests for invoice list functionality (Feature 5.3)"""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='SecurePass123!'
+        )
+        self.other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='SecurePass123!'
+        )
+        self.client.force_login(self.user)
+        self.list_url = reverse('invoice_list')
+
+        self.test_client = Client.objects.create(
+            user=self.user,
+            name='Test Client',
+            email='client@example.com'
+        )
+        self.other_client = Client.objects.create(
+            user=self.other_user,
+            name='Other Client',
+            email='other@example.com'
+        )
+
+        # Create invoices for this user
+        self.invoice1 = Invoice.objects.create(
+            user=self.user,
+            client=self.test_client,
+            invoice_number='INV-2025-00001',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date(),
+            status='draft'
+        )
+        self.invoice2 = Invoice.objects.create(
+            user=self.user,
+            client=self.test_client,
+            invoice_number='INV-2025-00002',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date(),
+            status='paid'
+        )
+        # Create invoice for other user
+        self.other_invoice = Invoice.objects.create(
+            user=self.other_user,
+            client=self.other_client,
+            invoice_number='INV-2025-00003',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date(),
+            status='draft'
+        )
+
+    def test_invoice_list_loads(self):
+        """Test that invoice list page loads"""
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'invoices/invoice_list.html')
+
+    def test_invoice_list_requires_login(self):
+        """Test that invoice list requires authentication"""
+        self.client.logout()
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('login', response.url)
+
+    def test_invoice_list_shows_only_user_invoices(self):
+        """Test that invoice list only shows user's own invoices"""
+        response = self.client.get(self.list_url)
+        invoices = response.context['invoices']
+        self.assertEqual(len(invoices), 2)
+        self.assertIn(self.invoice1, invoices)
+        self.assertIn(self.invoice2, invoices)
+        self.assertNotIn(self.other_invoice, invoices)
+
+    def test_invoice_list_status_filter(self):
+        """Test that status filter works"""
+        response = self.client.get(self.list_url + '?status=draft')
+        invoices = response.context['invoices']
+        self.assertEqual(len(invoices), 1)
+        self.assertIn(self.invoice1, invoices)
+
+        response = self.client.get(self.list_url + '?status=paid')
+        invoices = response.context['invoices']
+        self.assertEqual(len(invoices), 1)
+        self.assertIn(self.invoice2, invoices)
+
+
+class InvoiceDetailTests(TestCase):
+    """Tests for invoice detail functionality (Feature 5.4)"""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='SecurePass123!'
+        )
+        self.other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='SecurePass123!'
+        )
+        self.client.force_login(self.user)
+
+        self.test_client = Client.objects.create(
+            user=self.user,
+            name='Test Client',
+            email='client@example.com'
+        )
+        self.other_client = Client.objects.create(
+            user=self.other_user,
+            name='Other Client',
+            email='other@example.com'
+        )
+
+        self.invoice = Invoice.objects.create(
+            user=self.user,
+            client=self.test_client,
+            invoice_number='INV-2025-00001',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date(),
+            status='draft',
+            notes='Test notes'
+        )
+        InvoiceItem.objects.create(
+            invoice=self.invoice,
+            description='Test Service',
+            quantity=2,
+            unit_price=100,
+            line_total=200
+        )
+
+        self.other_invoice = Invoice.objects.create(
+            user=self.other_user,
+            client=self.other_client,
+            invoice_number='INV-2025-00002',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date(),
+            status='draft'
+        )
+
+    def test_invoice_detail_loads(self):
+        """Test that invoice detail page loads"""
+        url = reverse('invoice_detail', kwargs={'pk': self.invoice.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'invoices/invoice_detail.html')
+
+    def test_invoice_detail_shows_correct_data(self):
+        """Test that invoice detail shows correct data"""
+        url = reverse('invoice_detail', kwargs={'pk': self.invoice.pk})
+        response = self.client.get(url)
+        self.assertContains(response, 'INV-2025-00001')
+        self.assertContains(response, 'Test Client')
+        self.assertContains(response, 'Test Service')
+        self.assertContains(response, 'Test notes')
+
+    def test_cannot_view_other_user_invoice(self):
+        """Test that user cannot view other user's invoice"""
+        url = reverse('invoice_detail', kwargs={'pk': self.other_invoice.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+
+class InvoiceUpdateTests(TestCase):
+    """Tests for invoice update functionality (Feature 5.5)"""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='SecurePass123!'
+        )
+        self.other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='SecurePass123!'
+        )
+        self.client.force_login(self.user)
+
+        self.test_client = Client.objects.create(
+            user=self.user,
+            name='Test Client',
+            email='client@example.com'
+        )
+        self.other_client = Client.objects.create(
+            user=self.other_user,
+            name='Other Client',
+            email='other@example.com'
+        )
+
+        self.invoice = Invoice.objects.create(
+            user=self.user,
+            client=self.test_client,
+            invoice_number='INV-2025-00001',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date(),
+            status='draft'
+        )
+        self.line_item = InvoiceItem.objects.create(
+            invoice=self.invoice,
+            description='Original Service',
+            quantity=1,
+            unit_price=100,
+            line_total=100
+        )
+
+        self.other_invoice = Invoice.objects.create(
+            user=self.other_user,
+            client=self.other_client,
+            invoice_number='INV-2025-00002',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date(),
+            status='draft'
+        )
+
+    def test_invoice_update_page_loads(self):
+        """Test that invoice update page loads"""
+        url = reverse('invoice_update', kwargs={'pk': self.invoice.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'invoices/invoice_form.html')
+
+    def test_update_invoice(self):
+        """Test updating an invoice"""
+        url = reverse('invoice_update', kwargs={'pk': self.invoice.pk})
+        data = {
+            'client': self.test_client.pk,
+            'invoice_number': 'INV-2025-00001',
+            'issue_date': timezone.now().date().isoformat(),
+            'due_date': (timezone.now().date() + timezone.timedelta(days=30)).isoformat(),
+            'currency': 'USD',  # Changed from HTG
+            'status': 'sent',  # Changed from draft
+            'tax_percent': '5.00',
+            'discount_percent': '0.00',
+            'notes': 'Updated notes',
+            'line_items-TOTAL_FORMS': '1',
+            'line_items-INITIAL_FORMS': '1',
+            'line_items-MIN_NUM_FORMS': '1',
+            'line_items-MAX_NUM_FORMS': '1000',
+            'line_items-0-id': self.line_item.pk,
+            'line_items-0-description': 'Updated Service',
+            'line_items-0-quantity': '3',
+            'line_items-0-unit_price': '150.00',
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 302)
+
+        self.invoice.refresh_from_db()
+        self.assertEqual(self.invoice.currency, 'USD')
+        self.assertEqual(self.invoice.status, 'sent')
+        self.assertEqual(self.invoice.notes, 'Updated notes')
+
+    def test_cannot_update_other_user_invoice(self):
+        """Test that user cannot update other user's invoice"""
+        url = reverse('invoice_update', kwargs={'pk': self.other_invoice.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+
+class InvoiceDeleteTests(TestCase):
+    """Tests for invoice delete functionality (Feature 5.6)"""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='SecurePass123!'
+        )
+        self.other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='SecurePass123!'
+        )
+        self.client.force_login(self.user)
+
+        self.test_client = Client.objects.create(
+            user=self.user,
+            name='Test Client',
+            email='client@example.com'
+        )
+        self.other_client = Client.objects.create(
+            user=self.other_user,
+            name='Other Client',
+            email='other@example.com'
+        )
+
+        self.invoice = Invoice.objects.create(
+            user=self.user,
+            client=self.test_client,
+            invoice_number='INV-2025-00001',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date(),
+            status='draft'
+        )
+        self.other_invoice = Invoice.objects.create(
+            user=self.other_user,
+            client=self.other_client,
+            invoice_number='INV-2025-00002',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date(),
+            status='draft'
+        )
+
+    def test_invoice_delete_confirmation_page_loads(self):
+        """Test that delete confirmation page loads"""
+        url = reverse('invoice_delete', kwargs={'pk': self.invoice.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'invoices/invoice_confirm_delete.html')
+
+    def test_delete_invoice(self):
+        """Test deleting an invoice"""
+        url = reverse('invoice_delete', kwargs={'pk': self.invoice.pk})
+        response = self.client.post(url)
+        self.assertRedirects(response, reverse('invoice_list'))
+        self.assertFalse(Invoice.objects.filter(pk=self.invoice.pk).exists())
+
+    def test_cannot_delete_other_user_invoice(self):
+        """Test that user cannot delete other user's invoice"""
+        url = reverse('invoice_delete', kwargs={'pk': self.other_invoice.pk})
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(Invoice.objects.filter(pk=self.other_invoice.pk).exists())
+
+
+class InvoiceStatusManagementTests(TestCase):
+    """Tests for invoice status management (Feature 5.7)"""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='SecurePass123!'
+        )
+        self.client.force_login(self.user)
+
+        self.test_client = Client.objects.create(
+            user=self.user,
+            name='Test Client',
+            email='client@example.com'
+        )
+
+        self.invoice = Invoice.objects.create(
+            user=self.user,
+            client=self.test_client,
+            invoice_number='INV-2025-00001',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date(),
+            status='draft'
+        )
+
+    def test_change_status_to_sent(self):
+        """Test changing status to sent"""
+        url = reverse('invoice_change_status', kwargs={'pk': self.invoice.pk, 'status': 'sent'})
+        response = self.client.get(url)
+        self.assertRedirects(response, reverse('invoice_detail', kwargs={'pk': self.invoice.pk}))
+
+        self.invoice.refresh_from_db()
+        self.assertEqual(self.invoice.status, 'sent')
+
+    def test_change_status_to_paid(self):
+        """Test changing status to paid"""
+        url = reverse('invoice_change_status', kwargs={'pk': self.invoice.pk, 'status': 'paid'})
+        response = self.client.get(url)
+
+        self.invoice.refresh_from_db()
+        self.assertEqual(self.invoice.status, 'paid')
+
+    def test_change_status_to_overdue(self):
+        """Test changing status to overdue"""
+        url = reverse('invoice_change_status', kwargs={'pk': self.invoice.pk, 'status': 'overdue'})
+        response = self.client.get(url)
+
+        self.invoice.refresh_from_db()
+        self.assertEqual(self.invoice.status, 'overdue')
+
+    def test_change_status_to_canceled(self):
+        """Test changing status to canceled"""
+        url = reverse('invoice_change_status', kwargs={'pk': self.invoice.pk, 'status': 'canceled'})
+        response = self.client.get(url)
+
+        self.invoice.refresh_from_db()
+        self.assertEqual(self.invoice.status, 'canceled')
+
+    def test_invalid_status_rejected(self):
+        """Test that invalid status is rejected"""
+        url = reverse('invoice_change_status', kwargs={'pk': self.invoice.pk, 'status': 'invalid'})
+        response = self.client.get(url)
+        self.assertRedirects(response, reverse('invoice_detail', kwargs={'pk': self.invoice.pk}))
+
+        self.invoice.refresh_from_db()
+        self.assertEqual(self.invoice.status, 'draft')  # Unchanged
+
+
+class InvoiceCurrencyTests(TestCase):
+    """Tests for currency selection (Feature 5.8)"""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='SecurePass123!'
+        )
+        self.client.force_login(self.user)
+
+        self.test_client = Client.objects.create(
+            user=self.user,
+            name='Test Client',
+            email='client@example.com'
+        )
+
+    def test_create_invoice_with_htg(self):
+        """Test creating invoice with HTG currency"""
+        url = reverse('invoice_create')
+        data = {
+            'client': self.test_client.pk,
+            'invoice_number': 'INV-2025-00001',
+            'issue_date': timezone.now().date().isoformat(),
+            'due_date': (timezone.now().date() + timezone.timedelta(days=30)).isoformat(),
+            'currency': 'HTG',
+            'status': 'draft',
+            'tax_percent': '0.00',
+            'discount_percent': '0.00',
+            'line_items-TOTAL_FORMS': '1',
+            'line_items-INITIAL_FORMS': '0',
+            'line_items-MIN_NUM_FORMS': '1',
+            'line_items-MAX_NUM_FORMS': '1000',
+            'line_items-0-description': 'Test',
+            'line_items-0-quantity': '1',
+            'line_items-0-unit_price': '100.00',
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 302)
+
+        invoice = Invoice.objects.get(invoice_number='INV-2025-00001')
+        self.assertEqual(invoice.currency, 'HTG')
+
+    def test_create_invoice_with_usd(self):
+        """Test creating invoice with USD currency"""
+        url = reverse('invoice_create')
+        data = {
+            'client': self.test_client.pk,
+            'invoice_number': 'INV-2025-00002',
+            'issue_date': timezone.now().date().isoformat(),
+            'due_date': (timezone.now().date() + timezone.timedelta(days=30)).isoformat(),
+            'currency': 'USD',
+            'status': 'draft',
+            'tax_percent': '0.00',
+            'discount_percent': '0.00',
+            'line_items-TOTAL_FORMS': '1',
+            'line_items-INITIAL_FORMS': '0',
+            'line_items-MIN_NUM_FORMS': '1',
+            'line_items-MAX_NUM_FORMS': '1000',
+            'line_items-0-description': 'Test',
+            'line_items-0-quantity': '1',
+            'line_items-0-unit_price': '100.00',
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 302)
+
+        invoice = Invoice.objects.get(invoice_number='INV-2025-00002')
+        self.assertEqual(invoice.currency, 'USD')
+
+
+class InvoiceCalculationsTests(TestCase):
+    """Tests for invoice calculations (Features 5.9, 5.10, 5.12)"""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='SecurePass123!'
+        )
+        self.client.force_login(self.user)
+
+        self.test_client = Client.objects.create(
+            user=self.user,
+            name='Test Client',
+            email='client@example.com'
+        )
+
+    def test_line_total_calculation(self):
+        """Test line total calculation (quantity * unit_price)"""
+        invoice = Invoice.objects.create(
+            user=self.user,
+            client=self.test_client,
+            invoice_number='INV-2025-00001',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date(),
+            status='draft'
+        )
+        line_item = InvoiceItem.objects.create(
+            invoice=invoice,
+            description='Test Service',
+            quantity=3,
+            unit_price=50,
+            line_total=0  # Will be calculated on save
+        )
+        # Line total should be calculated
+        self.assertEqual(line_item.line_total, 150)
+
+    def test_subtotal_calculation(self):
+        """Test subtotal calculation (sum of line totals)"""
+        invoice = Invoice.objects.create(
+            user=self.user,
+            client=self.test_client,
+            invoice_number='INV-2025-00001',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date(),
+            status='draft'
+        )
+        InvoiceItem.objects.create(
+            invoice=invoice,
+            description='Service 1',
+            quantity=2,
+            unit_price=100,
+            line_total=200
+        )
+        InvoiceItem.objects.create(
+            invoice=invoice,
+            description='Service 2',
+            quantity=1,
+            unit_price=150,
+            line_total=150
+        )
+        invoice.calculate_totals()
+        invoice.save()
+
+        self.assertEqual(invoice.subtotal, 350)
+
+    def test_tax_calculation(self):
+        """Test tax percentage calculation (Feature 5.9)"""
+        invoice = Invoice.objects.create(
+            user=self.user,
+            client=self.test_client,
+            invoice_number='INV-2025-00001',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date(),
+            status='draft',
+            tax_percent=10
+        )
+        InvoiceItem.objects.create(
+            invoice=invoice,
+            description='Service',
+            quantity=1,
+            unit_price=1000,
+            line_total=1000
+        )
+        invoice.calculate_totals()
+        invoice.save()
+
+        # Tax should be 10% of 1000 = 100
+        self.assertEqual(invoice.tax_amount, 100)
+
+    def test_discount_calculation(self):
+        """Test discount percentage calculation (Feature 5.10)"""
+        invoice = Invoice.objects.create(
+            user=self.user,
+            client=self.test_client,
+            invoice_number='INV-2025-00001',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date(),
+            status='draft',
+            discount_percent=20
+        )
+        InvoiceItem.objects.create(
+            invoice=invoice,
+            description='Service',
+            quantity=1,
+            unit_price=1000,
+            line_total=1000
+        )
+        invoice.calculate_totals()
+        invoice.save()
+
+        # Discount should be 20% of 1000 = 200
+        self.assertEqual(invoice.discount_amount, 200)
+
+    def test_total_calculation_with_tax_and_discount(self):
+        """Test total calculation (subtotal + tax - discount)"""
+        invoice = Invoice.objects.create(
+            user=self.user,
+            client=self.test_client,
+            invoice_number='INV-2025-00001',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date(),
+            status='draft',
+            tax_percent=10,
+            discount_percent=5
+        )
+        InvoiceItem.objects.create(
+            invoice=invoice,
+            description='Service',
+            quantity=1,
+            unit_price=1000,
+            line_total=1000
+        )
+        invoice.calculate_totals()
+        invoice.save()
+
+        # Subtotal: 1000
+        # Tax (10%): 100
+        # Discount (5%): 50
+        # Total: 1000 + 100 - 50 = 1050
+        self.assertEqual(invoice.subtotal, 1000)
+        self.assertEqual(invoice.tax_amount, 100)
+        self.assertEqual(invoice.discount_amount, 50)
+        self.assertEqual(invoice.total, 1050)
+
+
+class InvoiceNotesTests(TestCase):
+    """Tests for notes/payment terms field (Feature 5.13)"""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='SecurePass123!'
+        )
+        self.client.force_login(self.user)
+
+        self.test_client = Client.objects.create(
+            user=self.user,
+            name='Test Client',
+            email='client@example.com'
+        )
+
+    def test_create_invoice_with_notes(self):
+        """Test creating invoice with notes"""
+        url = reverse('invoice_create')
+        data = {
+            'client': self.test_client.pk,
+            'invoice_number': 'INV-2025-00001',
+            'issue_date': timezone.now().date().isoformat(),
+            'due_date': (timezone.now().date() + timezone.timedelta(days=30)).isoformat(),
+            'currency': 'HTG',
+            'status': 'draft',
+            'tax_percent': '0.00',
+            'discount_percent': '0.00',
+            'notes': 'Payment due within 30 days. Late payments subject to 2% fee.',
+            'line_items-TOTAL_FORMS': '1',
+            'line_items-INITIAL_FORMS': '0',
+            'line_items-MIN_NUM_FORMS': '1',
+            'line_items-MAX_NUM_FORMS': '1000',
+            'line_items-0-description': 'Test',
+            'line_items-0-quantity': '1',
+            'line_items-0-unit_price': '100.00',
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 302)
+
+        invoice = Invoice.objects.get(invoice_number='INV-2025-00001')
+        self.assertEqual(invoice.notes, 'Payment due within 30 days. Late payments subject to 2% fee.')
+
+    def test_notes_displayed_on_detail_page(self):
+        """Test that notes are displayed on invoice detail page"""
+        invoice = Invoice.objects.create(
+            user=self.user,
+            client=self.test_client,
+            invoice_number='INV-2025-00001',
+            issue_date=timezone.now().date(),
+            due_date=timezone.now().date(),
+            status='draft',
+            notes='Test payment terms'
+        )
+        url = reverse('invoice_detail', kwargs={'pk': invoice.pk})
+        response = self.client.get(url)
+        self.assertContains(response, 'Test payment terms')

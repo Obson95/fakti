@@ -56,19 +56,19 @@ This document lists all implemented features in the Fakti application. Each feat
 
 ## 5. Invoice Management
 
-- [ ] 5.1 Create new invoice with line items
-- [ ] 5.2 Auto-generated invoice numbers (INV-YYYY-XXXXX)
-- [ ] 5.3 View invoice list
-- [ ] 5.4 View invoice detail
-- [ ] 5.5 Edit invoice and line items
-- [ ] 5.6 Delete invoice
-- [ ] 5.7 Status management (Draft, Sent, Paid, Overdue, Canceled)
-- [ ] 5.8 Currency selection (HTG, USD)
-- [ ] 5.9 Tax percentage calculation
-- [ ] 5.10 Discount percentage calculation
-- [ ] 5.11 Dynamic line item add/remove
-- [ ] 5.12 Automatic calculations (line totals, subtotal, tax, discount, total)
-- [ ] 5.13 Notes/payment terms field
+- [x] 5.1 Create new invoice with line items
+- [x] 5.2 Auto-generated invoice numbers (INV-YYYY-XXXXX)
+- [x] 5.3 View invoice list
+- [x] 5.4 View invoice detail
+- [x] 5.5 Edit invoice and line items
+- [x] 5.6 Delete invoice
+- [x] 5.7 Status management (Draft, Sent, Paid, Overdue, Canceled)
+- [x] 5.8 Currency selection (HTG, USD)
+- [x] 5.9 Tax percentage calculation
+- [x] 5.10 Discount percentage calculation
+- [x] 5.11 Dynamic line item add/remove
+- [x] 5.12 Automatic calculations (line totals, subtotal, tax, discount, total)
+- [x] 5.13 Notes/payment terms field
 
 ---
 
