@@ -580,3 +580,279 @@ class LocalizedContentTests(TestCase):
         response = self.client_http.get(reverse('home'))
         # Check that html lang attribute exists
         self.assertContains(response, '<html lang=')
+
+
+# =============================================================================
+# Section 10: Security & Access Control Tests
+# =============================================================================
+
+class LoginRequiredTests(TestCase):
+    """Tests for login required on protected features (Feature 10.1)"""
+
+    def setUp(self):
+        self.client_http = Client()
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='SecurePass123!'
+        )
+
+    def test_dashboard_requires_login(self):
+        """Test that dashboard requires authentication"""
+        response = self.client_http.get(reverse('dashboard'))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/users/login/', response.url)
+
+    def test_client_list_requires_login(self):
+        """Test that client list requires authentication"""
+        response = self.client_http.get(reverse('client_list'))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/users/login/', response.url)
+
+    def test_client_create_requires_login(self):
+        """Test that client create requires authentication"""
+        response = self.client_http.get(reverse('client_create'))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/users/login/', response.url)
+
+    def test_invoice_list_requires_login(self):
+        """Test that invoice list requires authentication"""
+        response = self.client_http.get(reverse('invoice_list'))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/users/login/', response.url)
+
+    def test_invoice_create_requires_login(self):
+        """Test that invoice create requires authentication"""
+        response = self.client_http.get(reverse('invoice_create'))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/users/login/', response.url)
+
+    def test_item_list_requires_login(self):
+        """Test that item list requires authentication"""
+        response = self.client_http.get(reverse('item_list'))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/users/login/', response.url)
+
+    def test_item_create_requires_login(self):
+        """Test that item create requires authentication"""
+        response = self.client_http.get(reverse('item_create'))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/users/login/', response.url)
+
+    def test_profile_requires_login(self):
+        """Test that profile page requires authentication"""
+        response = self.client_http.get(reverse('profile'))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/users/login/', response.url)
+
+    def test_settings_requires_login(self):
+        """Test that settings page requires authentication"""
+        response = self.client_http.get(reverse('settings'))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/users/login/', response.url)
+
+
+class UserDataIsolationTests(TestCase):
+    """Tests for user-specific data isolation (Feature 10.2)"""
+
+    def setUp(self):
+        self.client_http = Client()
+        # Create two users
+        self.user1 = User.objects.create_user(
+            username='user1',
+            email='user1@example.com',
+            password='SecurePass123!'
+        )
+        self.user2 = User.objects.create_user(
+            username='user2',
+            email='user2@example.com',
+            password='SecurePass123!'
+        )
+        # Create clients for each user
+        from invoices.models import Client as ClientModel, Invoice, Item
+        from datetime import date, timedelta
+
+        self.client1 = ClientModel.objects.create(
+            user=self.user1,
+            name='Client for User1',
+            email='client1@example.com'
+        )
+        self.client2 = ClientModel.objects.create(
+            user=self.user2,
+            name='Client for User2',
+            email='client2@example.com'
+        )
+        # Create items for each user
+        self.item1 = Item.objects.create(
+            user=self.user1,
+            name='Item for User1',
+            description='Test item',
+            unit_price=100.00
+        )
+        self.item2 = Item.objects.create(
+            user=self.user2,
+            name='Item for User2',
+            description='Test item',
+            unit_price=200.00
+        )
+        # Create invoices for each user
+        self.invoice1 = Invoice.objects.create(
+            user=self.user1,
+            client=self.client1,
+            invoice_number='INV-2024-00001',
+            issue_date=date.today(),
+            due_date=date.today() + timedelta(days=30),
+            status='draft'
+        )
+        self.invoice2 = Invoice.objects.create(
+            user=self.user2,
+            client=self.client2,
+            invoice_number='INV-2024-00001',
+            issue_date=date.today(),
+            due_date=date.today() + timedelta(days=30),
+            status='draft'
+        )
+
+    def test_user_can_only_see_own_clients(self):
+        """Test that user can only see their own clients"""
+        self.client_http.login(username='user1', password='SecurePass123!')
+        response = self.client_http.get(reverse('client_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Client for User1')
+        self.assertNotContains(response, 'Client for User2')
+
+    def test_user_cannot_access_other_user_client(self):
+        """Test that user cannot access another user's client"""
+        self.client_http.login(username='user1', password='SecurePass123!')
+        response = self.client_http.get(
+            reverse('client_detail', kwargs={'pk': self.client2.pk})
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_user_can_only_see_own_invoices(self):
+        """Test that user can only see their own invoices"""
+        self.client_http.login(username='user1', password='SecurePass123!')
+        response = self.client_http.get(reverse('invoice_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Client for User1')
+        self.assertNotContains(response, 'Client for User2')
+
+    def test_user_cannot_access_other_user_invoice(self):
+        """Test that user cannot access another user's invoice"""
+        self.client_http.login(username='user1', password='SecurePass123!')
+        response = self.client_http.get(
+            reverse('invoice_detail', kwargs={'pk': self.invoice2.pk})
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_user_can_only_see_own_items(self):
+        """Test that user can only see their own items"""
+        self.client_http.login(username='user1', password='SecurePass123!')
+        response = self.client_http.get(reverse('item_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Item for User1')
+        self.assertNotContains(response, 'Item for User2')
+
+    def test_user_cannot_update_other_user_client(self):
+        """Test that user cannot update another user's client"""
+        self.client_http.login(username='user1', password='SecurePass123!')
+        response = self.client_http.post(
+            reverse('client_update', kwargs={'pk': self.client2.pk}),
+            {'name': 'Hacked Name'}
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_user_cannot_delete_other_user_item(self):
+        """Test that user cannot delete another user's item"""
+        self.client_http.login(username='user1', password='SecurePass123!')
+        response = self.client_http.post(
+            reverse('item_delete', kwargs={'pk': self.item2.pk})
+        )
+        self.assertEqual(response.status_code, 404)
+
+
+class UniqueInvoiceNumberTests(TestCase):
+    """Tests for unique invoice numbers per user (Feature 10.3)"""
+
+    def setUp(self):
+        from invoices.models import Client as ClientModel, Invoice
+        from datetime import date, timedelta
+
+        self.user1 = User.objects.create_user(
+            username='user1',
+            email='user1@example.com',
+            password='SecurePass123!'
+        )
+        self.user2 = User.objects.create_user(
+            username='user2',
+            email='user2@example.com',
+            password='SecurePass123!'
+        )
+        self.client1 = ClientModel.objects.create(
+            user=self.user1,
+            name='Client1',
+            email='client1@example.com'
+        )
+        self.client2 = ClientModel.objects.create(
+            user=self.user2,
+            name='Client2',
+            email='client2@example.com'
+        )
+        self.issue_date = date.today()
+        self.due_date = date.today() + timedelta(days=30)
+
+    def test_same_invoice_number_different_users_allowed(self):
+        """Test that different users can have the same invoice number"""
+        from invoices.models import Invoice
+
+        # User 1 creates invoice with number INV-001
+        invoice1 = Invoice.objects.create(
+            user=self.user1,
+            client=self.client1,
+            invoice_number='INV-001',
+            issue_date=self.issue_date,
+            due_date=self.due_date
+        )
+        self.assertIsNotNone(invoice1.pk)
+
+        # User 2 can create invoice with same number
+        invoice2 = Invoice.objects.create(
+            user=self.user2,
+            client=self.client2,
+            invoice_number='INV-001',
+            issue_date=self.issue_date,
+            due_date=self.due_date
+        )
+        self.assertIsNotNone(invoice2.pk)
+
+    def test_duplicate_invoice_number_same_user_rejected(self):
+        """Test that same user cannot have duplicate invoice numbers"""
+        from invoices.models import Invoice
+        from django.db import IntegrityError
+
+        # User 1 creates first invoice
+        Invoice.objects.create(
+            user=self.user1,
+            client=self.client1,
+            invoice_number='INV-001',
+            issue_date=self.issue_date,
+            due_date=self.due_date
+        )
+
+        # User 1 tries to create another with same number - should fail
+        with self.assertRaises(IntegrityError):
+            Invoice.objects.create(
+                user=self.user1,
+                client=self.client1,
+                invoice_number='INV-001',
+                issue_date=self.issue_date,
+                due_date=self.due_date
+            )
+
+    def test_unique_constraint_name(self):
+        """Test that unique constraint exists in the model"""
+        from invoices.models import Invoice
+
+        constraints = Invoice._meta.constraints
+        constraint_names = [c.name for c in constraints]
+        self.assertIn('unique_invoice_number_per_user', constraint_names)

@@ -115,9 +115,9 @@ This document lists all implemented features in the Fakti application. Each feat
 
 ## 10. Security & Access Control
 
-- [ ] 10.1 Login required for all protected features
-- [ ] 10.2 User-specific data isolation
-- [ ] 10.3 Unique invoice numbers per user
+- [x] 10.1 Login required for all protected features
+- [x] 10.2 User-specific data isolation
+- [x] 10.3 Unique invoice numbers per user
 
 ---
 
