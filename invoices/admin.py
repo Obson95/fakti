@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Client, Invoice, InvoiceItem
+from .models import Client, Invoice, InvoiceItem, Item
 
 
 class InvoiceItemInline(admin.TabularInline):
@@ -51,3 +51,11 @@ class InvoiceItemAdmin(admin.ModelAdmin):
     list_display = ('invoice', 'description', 'quantity', 'unit_price', 'line_total')
     list_filter = ('invoice',)
     search_fields = ('description', 'invoice__invoice_number')
+
+
+@admin.register(Item)
+class ItemAdmin(admin.ModelAdmin):
+    list_display = ('name', 'user', 'description', 'unit_price', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('name', 'description')
+    readonly_fields = ('created_at', 'updated_at')

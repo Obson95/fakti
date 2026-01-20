@@ -856,3 +856,124 @@ class UniqueInvoiceNumberTests(TestCase):
         constraints = Invoice._meta.constraints
         constraint_names = [c.name for c in constraints]
         self.assertIn('unique_invoice_number_per_user', constraint_names)
+
+
+# =============================================================================
+# Section 11: Admin Tests
+# =============================================================================
+
+class AdminInterfaceTests(TestCase):
+    """Tests for Django admin interface (Feature 11.1)"""
+
+    def setUp(self):
+        self.client_http = Client()
+        # Create a superuser for admin access
+        self.admin_user = User.objects.create_superuser(
+            username='admin',
+            email='admin@example.com',
+            password='AdminPass123!'
+        )
+        # Create a regular user (non-admin)
+        self.regular_user = User.objects.create_user(
+            username='regular',
+            email='regular@example.com',
+            password='RegularPass123!'
+        )
+
+    def test_admin_url_exists(self):
+        """Test that admin URL exists"""
+        from django.urls import reverse
+        admin_url = reverse('admin:index')
+        self.assertEqual(admin_url, '/admin/')
+
+    def test_admin_login_page_accessible(self):
+        """Test that admin login page is accessible"""
+        response = self.client_http.get('/admin/login/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_admin_interface_requires_authentication(self):
+        """Test that admin index requires authentication"""
+        response = self.client_http.get('/admin/')
+        # Should redirect to login
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/admin/login/', response.url)
+
+    def test_superuser_can_access_admin(self):
+        """Test that superuser can access admin interface"""
+        self.client_http.login(username='admin', password='AdminPass123!')
+        response = self.client_http.get('/admin/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_regular_user_cannot_access_admin(self):
+        """Test that regular users cannot access admin interface"""
+        self.client_http.login(username='regular', password='RegularPass123!')
+        response = self.client_http.get('/admin/')
+        # Should redirect to admin login
+        self.assertEqual(response.status_code, 302)
+
+    def test_admin_user_model_accessible(self):
+        """Test that User model is accessible in admin"""
+        self.client_http.login(username='admin', password='AdminPass123!')
+        response = self.client_http.get('/admin/users/user/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_admin_client_model_accessible(self):
+        """Test that Client model is accessible in admin"""
+        self.client_http.login(username='admin', password='AdminPass123!')
+        response = self.client_http.get('/admin/invoices/client/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_admin_invoice_model_accessible(self):
+        """Test that Invoice model is accessible in admin"""
+        self.client_http.login(username='admin', password='AdminPass123!')
+        response = self.client_http.get('/admin/invoices/invoice/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_admin_item_model_accessible(self):
+        """Test that Item model is accessible in admin"""
+        self.client_http.login(username='admin', password='AdminPass123!')
+        response = self.client_http.get('/admin/invoices/item/')
+        self.assertEqual(response.status_code, 200)
+
+
+class AdminUserManagementTests(TestCase):
+    """Tests for admin user management (Feature 11.2)"""
+
+    def setUp(self):
+        self.client_http = Client()
+        self.admin_user = User.objects.create_superuser(
+            username='admin',
+            email='admin@example.com',
+            password='AdminPass123!'
+        )
+
+    def test_admin_can_create_user(self):
+        """Test that admin can access user creation form"""
+        self.client_http.login(username='admin', password='AdminPass123!')
+        response = self.client_http.get('/admin/users/user/add/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_admin_can_edit_user(self):
+        """Test that admin can access user edit form"""
+        self.client_http.login(username='admin', password='AdminPass123!')
+        response = self.client_http.get(f'/admin/users/user/{self.admin_user.pk}/change/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_admin_user_list_displays_users(self):
+        """Test that admin user list shows users"""
+        self.client_http.login(username='admin', password='AdminPass123!')
+        response = self.client_http.get('/admin/users/user/')
+        self.assertContains(response, 'admin')
+
+    def test_admin_can_search_users(self):
+        """Test that admin can search users"""
+        self.client_http.login(username='admin', password='AdminPass123!')
+        response = self.client_http.get('/admin/users/user/?q=admin')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'admin')
+
+    def test_admin_can_filter_users(self):
+        """Test that admin can filter users by staff status"""
+        self.client_http.login(username='admin', password='AdminPass123!')
+        response = self.client_http.get('/admin/users/user/?is_staff__exact=1')
+        self.assertEqual(response.status_code, 200)

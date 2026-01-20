@@ -123,8 +123,8 @@ This document lists all implemented features in the Fakti application. Each feat
 
 ## 11. Admin
 
-- [ ] 11.1 Django admin interface access
-- [ ] 11.2 Admin user management
+- [x] 11.1 Django admin interface access
+- [x] 11.2 Admin user management
 
 ---
 
