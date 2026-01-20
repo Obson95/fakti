@@ -106,10 +106,10 @@ This document lists all implemented features in the Fakti application. Each feat
 
 ## 9. Localization
 
-- [ ] 9.1 Haitian Creole language support (default)
-- [ ] 9.2 English language support
-- [ ] 9.3 Language toggle/switching
-- [ ] 9.4 Multi-currency display (HTG, USD)
+- [x] 9.1 Haitian Creole language support (default)
+- [x] 9.2 English language support
+- [x] 9.3 Language toggle/switching
+- [x] 9.4 Multi-currency display (HTG, USD)
 
 ---
 

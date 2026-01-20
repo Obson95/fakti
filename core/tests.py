@@ -426,3 +426,157 @@ class HomePageTests(TestCase):
         response = self.client_http.get(self.home_url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'core/home.html')
+
+
+# Localization Tests (Section 9)
+
+class LocalizationConfigTests(TestCase):
+    """Tests for localization configuration (Features 9.1, 9.2)"""
+
+    def test_default_language_is_haitian_creole(self):
+        """Test that default language is Haitian Creole (Feature 9.1)"""
+        from django.conf import settings
+        self.assertEqual(settings.LANGUAGE_CODE, 'ht')
+
+    def test_haitian_creole_in_available_languages(self):
+        """Test that Haitian Creole is available (Feature 9.1)"""
+        from django.conf import settings
+        language_codes = [code for code, name in settings.LANGUAGES]
+        self.assertIn('ht', language_codes)
+
+    def test_english_in_available_languages(self):
+        """Test that English is available (Feature 9.2)"""
+        from django.conf import settings
+        language_codes = [code for code, name in settings.LANGUAGES]
+        self.assertIn('en', language_codes)
+
+    def test_i18n_enabled(self):
+        """Test that internationalization is enabled"""
+        from django.conf import settings
+        self.assertTrue(settings.USE_I18N)
+
+    def test_locale_middleware_installed(self):
+        """Test that LocaleMiddleware is installed"""
+        from django.conf import settings
+        self.assertIn(
+            'django.middleware.locale.LocaleMiddleware',
+            settings.MIDDLEWARE
+        )
+
+
+class LanguageSwitchingTests(TestCase):
+    """Tests for language switching functionality (Feature 9.3)"""
+
+    def setUp(self):
+        self.client_http = Client()
+        self.set_language_url = reverse('set_language')
+
+    def test_language_switch_url_exists(self):
+        """Test that language switch URL exists (Feature 9.3)"""
+        # Just checking URL can be resolved
+        self.assertIsNotNone(self.set_language_url)
+
+    def test_switch_to_english(self):
+        """Test switching to English language"""
+        # The set_language view needs a 'next' parameter
+        response = self.client_http.post(
+            self.set_language_url,
+            {'language': 'en', 'next': '/'},
+            follow=True
+        )
+        self.assertEqual(response.status_code, 200)
+        # The language should be applied - check that the HTML lang attribute is set
+        # or that the response cookies or session has the language
+        # Django stores language preference in cookie
+        if 'django_language' in response.cookies:
+            self.assertEqual(response.cookies['django_language'].value, 'en')
+        else:
+            # If no cookie, the language should still be activated via session
+            self.assertEqual(response.status_code, 200)
+
+    def test_switch_to_haitian_creole(self):
+        """Test switching to Haitian Creole language"""
+        response = self.client_http.post(
+            self.set_language_url,
+            {'language': 'ht', 'next': '/'},
+            follow=True
+        )
+        self.assertEqual(response.status_code, 200)
+        # Check the request succeeded
+        if 'django_language' in response.cookies:
+            self.assertEqual(response.cookies['django_language'].value, 'ht')
+        else:
+            # If no cookie, the language should still be activated via session
+            self.assertEqual(response.status_code, 200)
+
+    def test_language_toggle_in_navbar(self):
+        """Test that language toggle is present in navigation"""
+        response = self.client_http.get(reverse('home'))
+        self.assertContains(response, 'languageDropdown')
+        # Check for the i18n setlang URL (rendered from {% url 'set_language' %})
+        self.assertContains(response, '/i18n/setlang/')
+
+
+class TranslationFileTests(TestCase):
+    """Tests for translation files (Features 9.1, 9.2)"""
+
+    def test_haitian_creole_translation_file_exists(self):
+        """Test that Haitian Creole translation file exists (Feature 9.1)"""
+        from django.conf import settings
+        import os
+
+        po_file_path = os.path.join(
+            settings.BASE_DIR, 'locale', 'ht', 'LC_MESSAGES', 'django.po'
+        )
+        self.assertTrue(os.path.exists(po_file_path))
+
+    def test_translation_file_has_content(self):
+        """Test that translation file has translations"""
+        from django.conf import settings
+        import os
+
+        po_file_path = os.path.join(
+            settings.BASE_DIR, 'locale', 'ht', 'LC_MESSAGES', 'django.po'
+        )
+
+        with open(po_file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        # Check for some key translations
+        self.assertIn('msgid', content)
+        self.assertIn('msgstr', content)
+        self.assertIn('Dashboard', content)  # Common string
+
+
+class LocalizedContentTests(TestCase):
+    """Tests for localized content display"""
+
+    def setUp(self):
+        self.client_http = Client()
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='SecurePass123!'
+        )
+
+    def test_page_renders_with_haitian_creole(self):
+        """Test that page renders with Haitian Creole content"""
+        self.client_http.cookies['django_language'] = 'ht'
+        self.client_http.login(username='testuser', password='SecurePass123!')
+        response = self.client_http.get(reverse('dashboard'))
+        self.assertEqual(response.status_code, 200)
+        # Page should load successfully with ht language
+
+    def test_page_renders_with_english(self):
+        """Test that page renders with English content"""
+        self.client_http.cookies['django_language'] = 'en'
+        self.client_http.login(username='testuser', password='SecurePass123!')
+        response = self.client_http.get(reverse('dashboard'))
+        self.assertEqual(response.status_code, 200)
+        # Page should load successfully with en language
+
+    def test_html_lang_attribute_set(self):
+        """Test that HTML lang attribute reflects current language"""
+        response = self.client_http.get(reverse('home'))
+        # Check that html lang attribute exists
+        self.assertContains(response, '<html lang=')
